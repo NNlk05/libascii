@@ -18,7 +18,7 @@ class Game:
         self,
         width: int = 80,
         height: int = 24,
-        title: str = "asciilib game",
+        title: str = "libascii game",
         fg: Color | None = None,
         bg: Color | None = None,
         filler: str = " ",
