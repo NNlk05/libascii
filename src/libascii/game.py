@@ -118,8 +118,12 @@ class Game:
         string: str,
         color: Color | None = None,
     ) -> None:
-        for offset, char in enumerate(string):
-            self.grid.set(x + offset, y, char, color)
+        self.grid.set_many(
+            [
+                (x + offset, y, char, color)
+                for offset, char in enumerate(string)
+            ]
+        )
 
     def refresh(self) -> None:
         self.renderer.render(self.grid)

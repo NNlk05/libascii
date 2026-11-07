@@ -98,27 +98,52 @@ class TkRenderer(Renderer, BindingMixin):
             return
         self.area.delete("1.0", tk.END)
 
-        for y, row in enumerate(grid.content):
-            self.area.insert(f"{y + 1}.0", "".join(row) + "\n")
-        if grid.colors:
-            unique_colors = {
-                color
-                for row in grid.colors
-                for color in row
-                if color is not None
-            }
-            for color in unique_colors:
-                color_str = str(color)
-                if color_str:
-                    self.area.tag_config(color_str, foreground=color_str)
-        for y, row in enumerate(grid.colors):
-            for x, color in enumerate(row):
+        rows = ["".join(row) for row in grid.content]
+        self.area.insert("1.0", "\n".join(rows) + "\n")
+
+        colors = grid.colors
+        has_color = False
+        for row in colors:
+            for color in row:
                 if color is not None:
-                    color_str = str(color)
-                    if color_str:
-                        self.area.tag_add(
-                            color_str, f"{y + 1}.{x}", f"{y + 1}.{x + 1}"
-                        )
+                    has_color = True
+                    break
+            if has_color:
+                break
+        if not has_color:
+            return
+
+        tag_ranges: dict[str, list[str]] = {}
+        for y, row in enumerate(colors):
+            line_prefix = f"{y + 1}."
+            x = 0
+            row_len = len(row)
+            while x < row_len:
+                color = row[x]
+                if color is None:
+                    x += 1
+                    continue
+                color_str = str(color)
+                if not color_str:
+                    x += 1
+                    continue
+                start = x
+                x += 1
+                while (
+                    x < row_len
+                    and row[x] is not None
+                    and str(row[x]) == color_str
+                ):
+                    x += 1
+                end = x
+                tag_ranges.setdefault(color_str, []).append(
+                    f"{line_prefix}{start} {line_prefix}{end}"
+                )
+
+        for color_str, ranges in tag_ranges.items():
+            self.area.tag_config(color_str, foreground=color_str)
+            for rng in ranges:
+                self.area.tag_add(color_str, rng)
 
     def set_title(self, title: str) -> None:
         self.title = title

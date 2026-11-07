@@ -49,8 +49,14 @@ class Grid:
     def set_many(
         self, cells: list[tuple[int, int, str, Color | None]]
     ) -> None:
+        content = self._content
+        colors = self._colors
+        width = self.width
+        height = self.height
         for x, y, char, color in cells:
-            self.set(x, y, char, color)
+            if 0 <= x < width and 0 <= y < height:
+                content[y][x] = char
+                colors[y][x] = color
 
     def get(self, x: int, y: int) -> tuple[str, Color | None]:
         self._check_bounds(x, y)
@@ -69,10 +75,12 @@ class Grid:
         self.set(x, y, char, color)
 
     def fill(self, char: str = "", color: Color | None = None) -> None:
+        content = self._content
+        colors = self._colors
+        width = self.width
         for y in range(self.height):
-            for x in range(self.width):
-                self._content[y][x] = char
-                self._colors[y][x] = color
+            content[y] = [char] * width
+            colors[y] = [color] * width
 
     def clear(self) -> None:
         self.fill(self.filler, None)

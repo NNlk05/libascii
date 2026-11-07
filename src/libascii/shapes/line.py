@@ -21,6 +21,11 @@ class Line(Shape):
         self.color = color if color is not None else Color("")
 
     def draw(self, grid: Grid) -> None:
+        content = grid.content
+        colors = grid.colors
+        width = grid.width
+        height = grid.height
+
         x0, y0 = self.x1, self.y1
         x1, y1 = self.x2, self.y2
         dx = abs(x1 - x0)
@@ -28,9 +33,13 @@ class Line(Shape):
         sx = 1 if x0 < x1 else -1
         sy = 1 if y0 < y1 else -1
         err = dx - dy
+        char = self.char
+        color = self.color
 
         while True:
-            grid.set(x0, y0, self.char, self.color)
+            if 0 <= x0 < width and 0 <= y0 < height:
+                content[y0][x0] = char
+                colors[y0][x0] = color
             if x0 == x1 and y0 == y1:
                 break
             e2 = 2 * err

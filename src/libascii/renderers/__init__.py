@@ -33,8 +33,6 @@ class Renderer(ABC):
 
 
 class BindingMixin:
-    """Shared binding-registration boilerplate for renderers."""
-
     def __init__(self) -> None:
         self._key_down_bindings: list[tuple[str, Callable[[str], None]]] = []
         self._key_up_bindings: list[tuple[str, Callable[[str], None]]] = []
