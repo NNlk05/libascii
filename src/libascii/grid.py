@@ -1,4 +1,4 @@
-from asciilib.color import Color
+from libascii.color import Color
 
 
 class Grid:

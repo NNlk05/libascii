@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from asciilib.grid import Grid
+from libascii.grid import Grid
 
 
 class Shape(ABC):

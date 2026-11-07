@@ -1,6 +1,6 @@
 import random
 
-from asciilib import Color, Game
+from libascii import Color, Game
 
 UP = (0, -1)
 DOWN = (0, 1)
@@ -40,7 +40,7 @@ class SnakeGame:
         self.game = Game(
             width=width,
             height=height,
-            title="asciilib Snake",
+            title="Snake",
             fps=fps,
         )
         self.snake: list[tuple[int, int]] = [(5, 5), (4, 5), (3, 5)]
