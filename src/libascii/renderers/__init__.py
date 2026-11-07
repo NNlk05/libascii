@@ -31,28 +31,38 @@ class Renderer(ABC):
     def set_fps(self, fps: int) -> None:
         pass
 
-    @abstractmethod
+
+class BindingMixin:
+    """Shared binding-registration boilerplate for renderers."""
+
+    def __init__(self) -> None:
+        self._key_down_bindings: list[tuple[str, Callable[[str], None]]] = []
+        self._key_up_bindings: list[tuple[str, Callable[[str], None]]] = []
+        self._mouse_down_bindings: list[Callable[[tuple[int, int]], None]] = []
+        self._mouse_up_bindings: list[Callable[[tuple[int, int]], None]] = []
+        self._frame_bindings: list[Callable[[], None]] = []
+
     def on_key_down(
         self, keybinding: str, callback: Callable[[str], None]
     ) -> None:
-        pass
+        self._key_down_bindings.append((keybinding, callback))
 
-    @abstractmethod
     def on_key_up(
         self, keybinding: str, callback: Callable[[str], None]
     ) -> None:
-        pass
+        self._key_up_bindings.append((keybinding, callback))
 
-    @abstractmethod
     def on_mouse_down(
         self, callback: Callable[[tuple[int, int]], None]
     ) -> None:
-        pass
+        self._mouse_down_bindings.append(callback)
 
-    @abstractmethod
     def on_mouse_up(self, callback: Callable[[tuple[int, int]], None]) -> None:
-        pass
+        self._mouse_up_bindings.append(callback)
 
-    @abstractmethod
     def on_frame(self, callback: Callable[[], None]) -> None:
-        pass
+        self._frame_bindings.append(callback)
+
+
+from .headless import HeadlessRenderer  # noqa: E402
+from .tk import TkRenderer  # noqa: E402

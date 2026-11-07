@@ -1,31 +1,8 @@
-from ..color import Color
 from ..grid import Grid
-from .shape import Shape
+from .shape import StyledShape
 
 
-class Triangle(Shape):
-    def __init__(
-        self,
-        width: int,
-        height: int,
-        fill: str = "",
-        border: str = "",
-        fill_color: Color = Color(""),
-        border_color: Color = Color(""),
-        border_left: str = "",
-        border_right: str = "",
-        border_bottom: str = "",
-    ) -> None:
-        self.width = width
-        self.height = height
-        self.fill = fill
-        self.border = border
-        self.fill_color = fill_color
-        self.border_color = border_color
-        self.border_left = border_left
-        self.border_right = border_right
-        self.border_bottom = border_bottom
-
+class Triangle(StyledShape):
     def draw(self, grid: Grid) -> None:
         if self.height == 0 or self.width == 0:
             return

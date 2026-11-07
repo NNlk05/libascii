@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, overload
+import importlib
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .chars import CharLib
@@ -14,91 +15,37 @@ if TYPE_CHECKING:
     from .shapes.triangle import Triangle
     from .sound import Sound
 
+__all__ = [
+    "Color",
+    "Grid",
+    "CharLib",
+    "Game",
+    "Shape",
+    "Rectangle",
+    "Ellipse",
+    "Triangle",
+    "Line",
+    "Sound",
+]
 
-@overload
-def __getattr__(name: Literal["Color"]) -> type[Color]: ...
-
-
-@overload
-def __getattr__(name: Literal["Grid"]) -> type[Grid]: ...
-
-
-@overload
-def __getattr__(name: Literal["CharLib"]) -> CharLib: ...
-
-
-@overload
-def __getattr__(name: Literal["Game"]) -> type[Game]: ...
-
-
-@overload
-def __getattr__(name: Literal["Shape"]) -> type[Shape]: ...
-
-
-@overload
-def __getattr__(name: Literal["Rectangle"]) -> type[Rectangle]: ...
-
-
-@overload
-def __getattr__(name: Literal["Ellipse"]) -> type[Ellipse]: ...
-
-
-@overload
-def __getattr__(name: Literal["Triangle"]) -> type[Triangle]: ...
-
-
-@overload
-def __getattr__(name: Literal["Line"]) -> type[Line]: ...
-
-
-@overload
-def __getattr__(name: Literal["Sound"]) -> type[Sound]: ...
-
-
-@overload
-def __getattr__(name: str) -> object: ...
+_IMPORT_MAP = {
+    "Color": (".color", "Color"),
+    "Grid": (".grid", "Grid"),
+    "CharLib": (".chars", "CharLib"),
+    "Game": (".game", "Game"),
+    "Shape": (".shapes.shape", "Shape"),
+    "Rectangle": (".shapes.rectangle", "Rectangle"),
+    "Ellipse": (".shapes.ellipse", "Ellipse"),
+    "Triangle": (".shapes.triangle", "Triangle"),
+    "Line": (".shapes.line", "Line"),
+    "Sound": (".sound", "Sound"),
+}
 
 
 def __getattr__(name: str) -> object:
-    match name:
-        case "Color":
-            from .color import Color
-
-            return Color
-        case "Grid":
-            from .grid import Grid
-
-            return Grid
-        case "CharLib":
-            from .chars import CharLib
-
-            return CharLib
-        case "Game":
-            from .game import Game
-
-            return Game
-        case "Shape":
-            from .shapes.shape import Shape
-
-            return Shape
-        case "Rectangle":
-            from .shapes.rectangle import Rectangle
-
-            return Rectangle
-        case "Ellipse":
-            from .shapes.ellipse import Ellipse
-
-            return Ellipse
-        case "Triangle":
-            from .shapes.triangle import Triangle
-
-            return Triangle
-        case "Line":
-            from .shapes.line import Line
-
-            return Line
-        case "Sound":
-            from .sound import Sound
-
-            return Sound
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    entry = _IMPORT_MAP.get(name)
+    if entry is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_path, attr = entry
+    module = importlib.import_module(module_path, __name__)
+    return getattr(module, attr)

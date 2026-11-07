@@ -6,10 +6,10 @@ from collections.abc import Callable
 from ..color import Color
 from ..grid import Grid
 from .._utils.keymapping import keybinding_to_events
-from . import Renderer
+from . import BindingMixin, Renderer
 
 
-class TkRenderer(Renderer):
+class TkRenderer(Renderer, BindingMixin):
     def __init__(
         self,
         width: int,
@@ -19,6 +19,7 @@ class TkRenderer(Renderer):
         default_fg: Color,
         fps: int,
     ) -> None:
+        BindingMixin.__init__(self)
         self.width = width
         self.height = height
         self.title = title
@@ -28,12 +29,6 @@ class TkRenderer(Renderer):
 
         self.root: tk.Tk | None = None
         self.area: tk.Text | None = None
-
-        self._key_down_bindings: list[tuple[str, Callable[[str], None]]] = []
-        self._key_up_bindings: list[tuple[str, Callable[[str], None]]] = []
-        self._mouse_down_bindings: list[Callable[[tuple[int, int]], None]] = []
-        self._mouse_up_bindings: list[Callable[[tuple[int, int]], None]] = []
-        self._frame_bindings: list[Callable[[], None]] = []
 
         self._running = False
 
@@ -77,6 +72,7 @@ class TkRenderer(Renderer):
         )
 
         self._running = True
+        self.render(self._empty_grid())
 
         def _tick() -> None:
             if not self._running:
@@ -102,6 +98,17 @@ class TkRenderer(Renderer):
 
         for y, row in enumerate(grid.content):
             self.area.insert(f"{y + 1}.0", "".join(row) + "\n")
+        if grid.colors:
+            unique_colors = {
+                color
+                for row in grid.colors
+                for color in row
+                if color is not None
+            }
+            for color in unique_colors:
+                color_str = str(color)
+                if color_str:
+                    self.area.tag_config(color_str, foreground=color_str)
         for y, row in enumerate(grid.colors):
             for x, color in enumerate(row):
                 if color is not None:
@@ -110,7 +117,6 @@ class TkRenderer(Renderer):
                         self.area.tag_add(
                             color_str, f"{y + 1}.{x}", f"{y + 1}.{x + 1}"
                         )
-                        self.area.tag_config(color_str, foreground=color_str)
 
     def set_title(self, title: str) -> None:
         self.title = title
@@ -128,27 +134,6 @@ class TkRenderer(Renderer):
             msg = "fps must be positive"
             raise ValueError(msg)
         self._fps = fps
-
-    def on_key_down(
-        self, keybinding: str, callback: Callable[[str], None]
-    ) -> None:
-        self._key_down_bindings.append((keybinding, callback))
-
-    def on_key_up(
-        self, keybinding: str, callback: Callable[[str], None]
-    ) -> None:
-        self._key_up_bindings.append((keybinding, callback))
-
-    def on_mouse_down(
-        self, callback: Callable[[tuple[int, int]], None]
-    ) -> None:
-        self._mouse_down_bindings.append(callback)
-
-    def on_mouse_up(self, callback: Callable[[tuple[int, int]], None]) -> None:
-        self._mouse_up_bindings.append(callback)
-
-    def on_frame(self, callback: Callable[[], None]) -> None:
-        self._frame_bindings.append(callback)
 
     @staticmethod
     def _prevent_selection(event: tk.Event[tk.Misc]) -> str:
@@ -175,3 +160,8 @@ class TkRenderer(Renderer):
                 binding(coord)
 
         return handler
+
+    def _empty_grid(self) -> Grid:
+        from ..grid import Grid
+
+        return Grid(self.width, self.height)

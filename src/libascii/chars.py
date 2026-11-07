@@ -126,6 +126,15 @@ CharLib: dict[str, dict[str | int, str]] = {
     "BRAILLE": {i: chr(0x2800 + i) for i in range(1, 256)},
 }
 
+
+def get_char(category: str, name: str) -> str:
+    try:
+        return CharLib[category][name]
+    except KeyError:
+        msg = f"character {name!r} not found in category {category!r}"
+        raise KeyError(msg) from None
+
+
 if __name__ == "__main__":
     for category, chars in CharLib.items():
         print(f"Category: {category}")

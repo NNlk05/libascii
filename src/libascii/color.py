@@ -1,5 +1,7 @@
 class Color:
-    def __init__(self, value: str | tuple[int, int, int]) -> None:
+    def __init__(
+        self, value: str | tuple[int, int, int] | None = None
+    ) -> None:
         if isinstance(value, tuple):
             if len(value) != 3 or not all(
                 isinstance(c, int) and 0 <= c <= 255 for c in value
@@ -8,7 +10,7 @@ class Color:
                 raise ValueError(msg)
             r, g, b = value
             self.value = f"#{r:02x}{g:02x}{b:02x}"
-        elif value == "":
+        elif value is None or value == "":
             self.value = None
         else:
             self.value = value
@@ -30,3 +32,14 @@ class Color:
 
     def __str__(self) -> str:
         return self.value if self.value is not None else ""
+
+    def __repr__(self) -> str:
+        return f"Color({self.value!r})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Color):
+            return NotImplemented
+        return self.value == other.value
+
+    def __hash__(self) -> int:
+        return hash(self.value)

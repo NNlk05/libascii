@@ -4,10 +4,10 @@ from collections.abc import Callable
 
 from ..color import Color
 from ..grid import Grid
-from . import Renderer
+from . import BindingMixin, Renderer
 
 
-class HeadlessRenderer(Renderer):
+class HeadlessRenderer(Renderer, BindingMixin):
     def __init__(
         self,
         width: int,
@@ -17,6 +17,7 @@ class HeadlessRenderer(Renderer):
         default_fg: Color,
         fps: int,
     ) -> None:
+        BindingMixin.__init__(self)
         self.width = width
         self.height = height
         self.title = title
@@ -26,12 +27,6 @@ class HeadlessRenderer(Renderer):
 
         self.last_grid: Grid | None = None
         self._running = False
-
-        self._key_down_bindings: list[tuple[str, Callable[[str], None]]] = []
-        self._key_up_bindings: list[tuple[str, Callable[[str], None]]] = []
-        self._mouse_down_bindings: list[Callable[[tuple[int, int]], None]] = []
-        self._mouse_up_bindings: list[Callable[[tuple[int, int]], None]] = []
-        self._frame_bindings: list[Callable[[], None]] = []
 
     def start(self) -> None:
         self._running = True
@@ -54,27 +49,6 @@ class HeadlessRenderer(Renderer):
             msg = "fps must be positive"
             raise ValueError(msg)
         self._fps = fps
-
-    def on_key_down(
-        self, keybinding: str, callback: Callable[[str], None]
-    ) -> None:
-        self._key_down_bindings.append((keybinding, callback))
-
-    def on_key_up(
-        self, keybinding: str, callback: Callable[[str], None]
-    ) -> None:
-        self._key_up_bindings.append((keybinding, callback))
-
-    def on_mouse_down(
-        self, callback: Callable[[tuple[int, int]], None]
-    ) -> None:
-        self._mouse_down_bindings.append(callback)
-
-    def on_mouse_up(self, callback: Callable[[tuple[int, int]], None]) -> None:
-        self._mouse_up_bindings.append(callback)
-
-    def on_frame(self, callback: Callable[[], None]) -> None:
-        self._frame_bindings.append(callback)
 
     def tick(self) -> None:
         if not self._running:

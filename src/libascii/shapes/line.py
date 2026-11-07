@@ -11,14 +11,14 @@ class Line(Shape):
         x2: int,
         y2: int,
         char: str = "#",
-        color: Color = Color(""),
+        color: Color | None = None,
     ) -> None:
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
         self.char = char
-        self.color = color
+        self.color = color if color is not None else Color("")
 
     def draw(self, grid: Grid) -> None:
         x0, y0 = self.x1, self.y1
