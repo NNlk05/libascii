@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-06
+
+## Added
+- Addded README
+
+### Fixed
+- Bumped deps
+- Fixed leftover "asciilib" from rename
+
 ## [0.1.0] - 2026-11-06
 
 ### Added
