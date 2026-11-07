@@ -71,6 +71,8 @@ class TkRenderer(Renderer, BindingMixin):
             self._make_mouse_handler(self._mouse_up_bindings),
         )
 
+        self.area.bind("<Key>", lambda event: "break")
+
         self._running = True
         self.render(self._empty_grid())
 
