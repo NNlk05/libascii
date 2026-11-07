@@ -113,7 +113,7 @@ class TkRenderer(Renderer, BindingMixin):
         if not has_color:
             return
 
-        tag_ranges: dict[str, list[str]] = {}
+        tag_ranges: dict[str, list[tuple[str, str]]] = {}
         for y, row in enumerate(colors):
             line_prefix = f"{y + 1}."
             x = 0
@@ -137,13 +137,13 @@ class TkRenderer(Renderer, BindingMixin):
                     x += 1
                 end = x
                 tag_ranges.setdefault(color_str, []).append(
-                    f"{line_prefix}{start} {line_prefix}{end}"
+                    (f"{line_prefix}{start}", f"{line_prefix}{end}")
                 )
 
         for color_str, ranges in tag_ranges.items():
             self.area.tag_config(color_str, foreground=color_str)
-            for rng in ranges:
-                self.area.tag_add(color_str, rng)
+            for start_idx, end_idx in ranges:
+                self.area.tag_add(color_str, start_idx, end_idx)
 
     def set_title(self, title: str) -> None:
         self.title = title
