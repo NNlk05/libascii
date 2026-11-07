@@ -17,4 +17,4 @@ $ pip install -e . #TODO: I think this is the right commands but I'm not sure...
 ```
 
 ## Usage
-See the [`libascii` wiki for usage](https://github.com/NNlk05/libascii/wiki)
+See the [`libascii` wiki](https://github.com/NNlk05/libascii/wiki) or the demos in `demos/` for usage
