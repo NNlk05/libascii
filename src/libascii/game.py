@@ -179,6 +179,8 @@ class Game:
     def refresh(self) -> None:
         if not self.grid.dirty:
             return
+        if self._show_debug:
+            self._write_debug_line()
         dirty_cells = self.grid.dirty_cells
         xs = [x for x, _ in dirty_cells]
         ys = [y for _, y in dirty_cells]
@@ -188,8 +190,6 @@ class Game:
         rh = max(ys) - ry + 1
         region = (rx, ry, rw, rh)
 
-        if self._show_debug:
-            self._write_debug_line()
         self.renderer.render(self.grid, region=region)
         self.grid.mark_clean()
 
