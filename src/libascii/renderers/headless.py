@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
 from . import BindingMixin, Renderer
@@ -34,7 +35,7 @@ class HeadlessRenderer(Renderer, BindingMixin):
     def stop(self) -> None:
         self._running = False
 
-    def render(self, grid: Grid) -> None:
+    def render(self, grid: Grid, camera: Camera | None = None) -> None:
         self.last_grid = grid
 
     def set_title(self, title: str) -> None:

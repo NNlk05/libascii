@@ -4,6 +4,7 @@ import importlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from .camera import Camera
     from .chars import CharLib
     from .color import Color
     from .game import Game
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from .sound import Sound
 
 __all__ = [
+    "Camera",
     "Color",
     "Grid",
     "CharLib",
@@ -29,6 +31,7 @@ __all__ = [
 ]
 
 _IMPORT_MAP = {
+    "Camera": (".camera", "Camera"),
     "Color": (".color", "Color"),
     "Grid": (".grid", "Grid"),
     "CharLib": (".chars", "CharLib"),

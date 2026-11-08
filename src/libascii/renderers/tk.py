@@ -3,6 +3,7 @@ from __future__ import annotations
 import tkinter as tk
 from collections.abc import Callable
 
+from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
 from .._utils.keymapping import keybinding_to_events
@@ -93,15 +94,25 @@ class TkRenderer(Renderer, BindingMixin):
         if self.root is not None:
             self.root.quit()
 
-    def render(self, grid: Grid) -> None:
+    def render(self, grid: Grid, camera: Camera | None = None) -> None:
         if self.area is None:
             return
+
+        if camera is None:
+            content = grid.content
+            colors = grid.colors
+        else:
+            ox, oy = camera.offset
+            vw = camera.viewport_width
+            vh = camera.viewport_height
+            content = [row[ox : ox + vw] for row in grid.content[oy : oy + vh]]
+            colors = [row[ox : ox + vw] for row in grid.colors[oy : oy + vh]]
+
         self.area.delete("1.0", tk.END)
 
-        rows = ["".join(row) for row in grid.content]
+        rows = ["".join(row) for row in content]
         self.area.insert("1.0", "\n".join(rows) + "\n")
 
-        colors = grid.colors
         has_color = False
         for row in colors:
             for color in row:

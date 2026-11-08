@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
+from ..camera import Camera
 from ..grid import Grid
 
 
@@ -16,7 +17,7 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def render(self, grid: Grid) -> None:
+    def render(self, grid: Grid, camera: Camera | None = None) -> None:
         pass
 
     @abstractmethod
