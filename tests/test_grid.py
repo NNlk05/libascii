@@ -165,3 +165,22 @@ def test_dirty_mark_clean() -> None:
     assert grid.dirty is True
     grid.mark_clean()
     assert grid.dirty is False
+
+
+def test_dirty_mark_cells_clean() -> None:
+    grid = Grid(3, 3)
+    grid.set(0, 0, "X")
+    grid.set(1, 1, "Y")
+    grid.set(2, 2, "Z")
+    assert grid.dirty is True
+    grid.mark_cells_clean([(0, 0), (1, 1)])
+    assert grid.dirty is True
+    grid.mark_cells_clean([(2, 2)])
+    assert grid.dirty is False
+
+
+def test_dirty_mark_cells_clean_nonexistent() -> None:
+    grid = Grid(3, 3)
+    grid.set(0, 0, "X")
+    grid.mark_cells_clean([(5, 5)])
+    assert grid.dirty is True
