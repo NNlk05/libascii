@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests
 
 ### Changed
-- Lots of optimization
+- Lots of optimization, including dirty flag on grid to prevent unnecessary rendering
 
 ## [0.2.2] - 2026-11-07
 
