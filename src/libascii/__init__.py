@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from .shapes.triangle import Triangle
     from .sound import Sound
     from .sprite import Sprite
+    from .text import align, draw_text, wrap
     from .tilemap import Tilemap
 
 __all__ = [
@@ -44,6 +45,9 @@ __all__ = [
     "rect_overlap",
     "point_in_rect",
     "grid_cell_overlap",
+    "wrap",
+    "align",
+    "draw_text",
 ]
 
 _IMPORT_MAP = {
@@ -68,6 +72,9 @@ _IMPORT_MAP = {
     "rect_overlap": (".collision", "rect_overlap"),
     "point_in_rect": (".collision", "point_in_rect"),
     "grid_cell_overlap": (".collision", "grid_cell_overlap"),
+    "wrap": (".text", "wrap"),
+    "align": (".text", "align"),
+    "draw_text": (".text", "draw_text"),
 }
 
 
