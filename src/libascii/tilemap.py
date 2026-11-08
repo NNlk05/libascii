@@ -1,0 +1,31 @@
+from __future__ import annotations
+
+from libascii.color import Color
+from libascii.grid import Grid
+
+
+class Tilemap:
+    def __init__(
+        self,
+        tile_grid: list[list[int]],
+        tileset: dict[int, tuple[str, Color | None]],
+    ) -> None:
+        self.tile_grid = tile_grid
+        self.tileset = tileset
+
+    def draw(self, grid: Grid, ox: int, oy: int) -> None:
+        for ty, row in enumerate(self.tile_grid):
+            grid_y = oy + ty
+            if not 0 <= grid_y < grid.height:
+                continue
+            for tx, tile_id in enumerate(row):
+                grid_x = ox + tx
+                if not 0 <= grid_x < grid.width:
+                    continue
+                entry = self.tileset.get(tile_id)
+                if entry is None:
+                    char = ""
+                    color = None
+                else:
+                    char, color = entry
+                grid.set(grid_x, grid_y, char, color)
