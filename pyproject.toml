@@ -8,8 +8,7 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "simpleaudio>=1.0.4",
-    "ty>=0.0.99",
+    "simpleaudio>=1.0.4"
 ]
 
 classifiers = [
@@ -42,6 +41,7 @@ dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.4",
     "uncomment>=3.10.4",
+    "ty>=0.0.99",
 ]
 
 [tool.ruff]

@@ -35,7 +35,6 @@ version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "simpleaudio" },
-    { name = "ty" },
 ]
 
 [package.dev-dependencies]
@@ -43,20 +42,19 @@ dev = [
     { name = "pip-licenses" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "ty" },
     { name = "uncomment" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "simpleaudio", specifier = ">=1.0.4" },
-    { name = "ty", specifier = ">=0.0.99" },
-]
+requires-dist = [{ name = "simpleaudio", specifier = ">=1.0.4" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "pip-licenses", specifier = ">=5.5.5" },
     { name = "pytest", specifier = ">=9.2.0" },
     { name = "ruff", specifier = ">=0.17.4" },
+    { name = "ty", specifier = ">=0.0.99" },
     { name = "uncomment", specifier = ">=3.10.4" },
 ]
 
