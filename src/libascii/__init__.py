@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from .grid import Grid
     from .input import ActionMap
     from .particle import Particle, ParticleSystem
+    from .scene import Scene, SceneManager
     from .shapes.ellipse import Ellipse
     from .shapes.line import Line
     from .shapes.rectangle import Rectangle
@@ -38,6 +39,8 @@ __all__ = [
     "ActionMap",
     "Particle",
     "ParticleSystem",
+    "Scene",
+    "SceneManager",
     "rect_overlap",
     "point_in_rect",
     "grid_cell_overlap",
@@ -60,6 +63,8 @@ _IMPORT_MAP = {
     "ActionMap": (".input", "ActionMap"),
     "Particle": (".particle", "Particle"),
     "ParticleSystem": (".particle", "ParticleSystem"),
+    "Scene": (".scene", "Scene"),
+    "SceneManager": (".scene", "SceneManager"),
     "rect_overlap": (".collision", "rect_overlap"),
     "point_in_rect": (".collision", "point_in_rect"),
     "grid_cell_overlap": (".collision", "grid_cell_overlap"),
