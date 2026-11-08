@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from .shapes.shape import Shape
     from .shapes.triangle import Triangle
     from .sound import Sound
+    from .sprite import Sprite
 
 __all__ = [
     "Camera",
@@ -28,6 +29,7 @@ __all__ = [
     "Triangle",
     "Line",
     "Sound",
+    "Sprite",
 ]
 
 _IMPORT_MAP = {
@@ -42,6 +44,7 @@ _IMPORT_MAP = {
     "Triangle": (".shapes.triangle", "Triangle"),
     "Line": (".shapes.line", "Line"),
     "Sound": (".sound", "Sound"),
+    "Sprite": (".sprite", "Sprite"),
 }
 
 
