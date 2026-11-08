@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Changed
+### Added
+
+- A particle system
+- Collision system
+
+### Changed
+
 - Some dict keys in `libascii.chars` have been renamed (`BLACK` to `FILLED` and all `WHITE` to `OUTLINE`) to better fit now the grid is colored.
 
 ## [0.3.0] - 2026-11-07
+
 ### Added
+
 - Tests
 - A `_show_debug` flag to show debug info
 - A `Camera` class; for only displaying a small part ("viewport") of the whole grid
@@ -20,16 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A `ActionMap` class for better and cleaner binding of keys
 
 ### Changed
+
 - Lots of optimization, including dirty flag on grid to prevent unnecessary rendering
 
 ## [0.2.2] - 2026-11-07
 
 ### Fixed
+
 - `TkRender` now no longer bubble key presses
 
 ## [0.2.1] - 2026-11-07
 
 ### Changed
+
 - `Game` is now backend-agnostic: rendering is handled by a `Renderer`
   (`libascii._renderers.Renderer`). `TkRenderer` (using tkinter) is the default. a
   `HeadlessRenderer` is used for tests.
@@ -51,9 +62,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2026-11-07
 
->[!WARNING] I wiped my work and accidentally published 0.2.0. Please use 0.2.1
+> [!WARNING] I wiped my work and accidentally published 0.2.0. Please use 0.2.1
 
 ### Changed
+
 - `Game` is now backend-agnostic: rendering is handled by a `Renderer`
   (`libascii._renderers.Renderer`). `TkRenderer` (using tkinter) is the default. a
   `HeadlessRenderer` is used for tests.
@@ -76,16 +88,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.1] - 2026-11-06
 
 ## Added
+
 - Added README
 
 ### Fixed
+
 - Bumped deps
 - Fixed leftover "asciilib" from rename
 
 ## [0.1.0] - 2026-11-06
 
 ### Added
+
 The base and core package `libascii`
+
 - `src/libascii` - package root
   - `libascii.__init__` - a `__init__.py` file containing a lazy loader.
   - `libascii.chars` - A library of ASCII and Unicode characters to use.
@@ -99,4 +115,3 @@ The base and core package `libascii`
       - `libascii.shapes.rectangle` - Rectangles
       - `libascii.shapes.shape` - Base shape class
       - `libascii.shapes.triangle` - Triangles
-      

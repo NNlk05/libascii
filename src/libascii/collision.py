@@ -3,7 +3,7 @@ from __future__ import annotations
 from libascii.grid import Grid
 
 
-def collisions(
+def rect_overlap(
     r1: tuple[int, int, int, int],
     r2: tuple[int, int, int, int],
 ) -> bool:
