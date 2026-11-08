@@ -190,15 +190,9 @@ class Game:
             return
         if self._show_debug:
             self._write_debug_line()
-        dirty_cells = self.grid.dirty_cells
-        xs = [x for x, _ in dirty_cells]
-        ys = [y for _, y in dirty_cells]
-        rx = min(xs)
-        ry = min(ys)
-        rw = max(xs) - rx + 1
-        rh = max(ys) - ry + 1
-        region = (rx, ry, rw, rh)
-
+        region = self.grid.dirty_region()
+        if region is None:
+            return
         self.renderer.render(self.grid, region=region)
         self.grid.mark_clean()
 

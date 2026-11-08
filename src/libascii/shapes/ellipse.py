@@ -53,6 +53,7 @@ class Ellipse(StyledShape):
 
         content = grid.content
         colors = grid.colors
+        dirty_cells = grid._dirty_cells
 
         for y in range(height):
             interval = intervals[y]
@@ -97,3 +98,4 @@ class Ellipse(StyledShape):
                 else:
                     content[y][x] = fill
                     colors[y][x] = fill_color
+                dirty_cells.add((x, y))

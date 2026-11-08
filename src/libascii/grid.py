@@ -18,6 +18,7 @@ class Grid:
             [None for _ in range(width)] for _ in range(height)
         ]
         self._dirty_cells: set[tuple[int, int]] = set()
+        self._fully_dirty: bool = False
 
     @property
     def content(self) -> list[list[str]]:
@@ -29,7 +30,7 @@ class Grid:
 
     @property
     def dirty(self) -> bool:
-        return len(self._dirty_cells) > 0
+        return self._fully_dirty or len(self._dirty_cells) > 0
 
     @property
     def dirty_cells(self) -> frozenset[tuple[int, int]]:
@@ -37,10 +38,22 @@ class Grid:
 
     def mark_clean(self) -> None:
         self._dirty_cells.clear()
+        self._fully_dirty = False
 
     def mark_cells_clean(self, cells: list[tuple[int, int]]) -> None:
         for cell in cells:
             self._dirty_cells.discard(cell)
+
+    def dirty_region(self) -> tuple[int, int, int, int] | None:
+        if self._fully_dirty:
+            return (0, 0, self.width, self.height)
+        if not self._dirty_cells:
+            return None
+        xs = [x for x, _ in self._dirty_cells]
+        ys = [y for _, y in self._dirty_cells]
+        rx = min(xs)
+        ry = min(ys)
+        return (rx, ry, max(xs) - rx + 1, max(ys) - ry + 1)
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
@@ -101,9 +114,7 @@ class Grid:
         for y in range(self.height):
             content[y] = [char] * width
             colors[y] = [color] * width
-        self._dirty_cells.update(
-            (x, y) for x in range(width) for y in range(self.height)
-        )
+        self._fully_dirty = True
 
     def clear(self) -> None:
         self.fill(self.filler, None)

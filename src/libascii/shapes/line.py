@@ -28,6 +28,7 @@ class Line(Shape):
         colors = grid.colors
         width = grid.width
         height = grid.height
+        dirty_cells = grid._dirty_cells
 
         x0, y0 = self.x1, self.y1
         x1, y1 = self.x2, self.y2
@@ -43,6 +44,7 @@ class Line(Shape):
             if 0 <= x0 < width and 0 <= y0 < height:
                 content[y0][x0] = char
                 colors[y0][x0] = color
+                dirty_cells.add((x0, y0))
             if x0 == x1 and y0 == y1:
                 break
             e2 = 2 * err

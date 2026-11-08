@@ -36,6 +36,8 @@ class TkRenderer(Renderer, BindingMixin):
 
         self._running = False
 
+        self._tag_configured: set[str] = set()
+
     @override
     def start(self) -> None:
         root = tk.Tk()
@@ -56,6 +58,7 @@ class TkRenderer(Renderer, BindingMixin):
             highlightthickness=0,
         )
         self.area.pack()
+        self._tag_configured = set()
 
         self.area.bind("<Button-1>", self._prevent_selection)
         self.area.bind("<B1-Motion>", self._prevent_selection)
@@ -177,7 +180,9 @@ class TkRenderer(Renderer, BindingMixin):
                 )
 
         for color_str, ranges in tag_ranges.items():
-            self.area.tag_config(color_str, foreground=color_str)
+            if color_str not in self._tag_configured:
+                self.area.tag_config(color_str, foreground=color_str)
+                self._tag_configured.add(color_str)
             for start_idx, end_idx in ranges:
                 self.area.tag_add(color_str, start_idx, end_idx)
 

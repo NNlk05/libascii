@@ -23,6 +23,8 @@ class Rectangle(StyledShape):
         last_y = height - 1
         last_x = width - 1
 
+        dirty_cells = grid._dirty_cells
+
         if fill:
             for y in range(1, last_y):
                 row = grid.content[y]
@@ -30,6 +32,7 @@ class Rectangle(StyledShape):
                 for x in range(1, last_x):
                     row[x] = fill
                     color_row[x] = fill_color
+                    dirty_cells.add((x, y))
 
         top_row = grid.content[0]
         top_color_row = grid.colors[0]
@@ -37,6 +40,7 @@ class Rectangle(StyledShape):
         for x in range(width):
             top_row[x] = top_char
             top_color_row[x] = border_color
+            dirty_cells.add((x, 0))
 
         if height > 1:
             bottom_row = grid.content[last_y]
@@ -45,6 +49,7 @@ class Rectangle(StyledShape):
             for x in range(width):
                 bottom_row[x] = bottom_char
                 bottom_color_row[x] = border_color
+                dirty_cells.add((x, last_y))
 
         if width > 1:
             left_char = border_left or border
@@ -56,3 +61,5 @@ class Rectangle(StyledShape):
                 color_row[0] = border_color
                 row[last_x] = right_char
                 color_row[last_x] = border_color
+                dirty_cells.add((0, y))
+                dirty_cells.add((last_x, y))
