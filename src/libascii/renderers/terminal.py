@@ -40,19 +40,25 @@ _NAMED_COLORS: dict[str, tuple[int, int, int]] = {
 def _color_to_rgb(value: str | None) -> tuple[int, int, int] | None:
     if value is None or value == "":
         return None
+    if value in _COLOR_RGB_CACHE:
+        return _COLOR_RGB_CACHE[value]
     if value.startswith("#"):
         hex_str = value[1:]
         if len(hex_str) == 6:
             try:
-                return (
+                result = (
                     int(hex_str[0:2], 16),
                     int(hex_str[2:4], 16),
                     int(hex_str[4:6], 16),
                 )
             except ValueError:
-                return None
-        return None
-    return _NAMED_COLORS.get(value.lower())
+                result = None
+        else:
+            result = None
+    else:
+        result = _NAMED_COLORS.get(value.lower())
+    _COLOR_RGB_CACHE[value] = result
+    return result
 
 
 def _build_xterm256_palette() -> list[tuple[int, int, int]]:
@@ -92,8 +98,15 @@ def _build_xterm256_palette() -> list[tuple[int, int, int]]:
 
 _XTERM256_PALETTE = _build_xterm256_palette()
 
+_COLOR_RGB_CACHE: dict[str, tuple[int, int, int] | None] = {}
+_XTERM256_CACHE: dict[tuple[int, int, int], int] = {}
+_ESCAPE_CACHE: dict[tuple[str, str], str] = {}
+
 
 def _nearest_xterm256(r: int, g: int, b: int) -> int:
+    key = (r, g, b)
+    if key in _XTERM256_CACHE:
+        return _XTERM256_CACHE[key]
     best_index = 0
     best_dist = 255 * 255 * 3 + 1
     for i, (pr, pg, pb) in enumerate(_XTERM256_PALETTE):
@@ -104,6 +117,7 @@ def _nearest_xterm256(r: int, g: int, b: int) -> int:
         if dist < best_dist:
             best_dist = dist
             best_index = i
+    _XTERM256_CACHE[key] = best_index
     return best_index
 
 
@@ -120,15 +134,22 @@ def _color_escape(
 ) -> str:
     if color_str is None or color_str == "":
         return ""
+    cache_key = (color_str, mode)
+    if cache_key in _ESCAPE_CACHE:
+        return _ESCAPE_CACHE[cache_key]
     rgb = _color_to_rgb(color_str)
     if rgb is None:
-        return ""
-    r, g, b = rgb
-    if mode == "truecolor":
-        return f"\x1b[38;2;{r};{g};{b}m"
-    if mode == "xterm256":
-        return f"\x1b[38;5;{_nearest_xterm256(r, g, b)}m"
-    return ""
+        result = ""
+    else:
+        r, g, b = rgb
+        if mode == "truecolor":
+            result = f"\x1b[38;2;{r};{g};{b}m"
+        elif mode == "xterm256":
+            result = f"\x1b[38;5;{_nearest_xterm256(r, g, b)}m"
+        else:
+            result = ""
+    _ESCAPE_CACHE[cache_key] = result
+    return result
 
 
 _KEY_NAMES: dict[tuple[int, ...], str] = {
@@ -469,6 +490,7 @@ class TerminalRenderer(Renderer, BindingMixin):
         self.stream = stream if stream is not None else sys.stdout
         self._running = False
         self._colorama_initialized = False
+        self._color_mode: str | None = None
         self._input_driver: _InputDriver | None = None
 
     def _init_colorama(self) -> None:
@@ -479,11 +501,16 @@ class TerminalRenderer(Renderer, BindingMixin):
             colorama.init()
 
     def _detect_mode(self) -> str:
+        if self._color_mode is not None:
+            return self._color_mode
         if not self.use_color:
-            return "plain"
+            self._color_mode = "plain"
+            return self._color_mode
         if _supports_truecolor(self.stream):
-            return "truecolor"
-        return "xterm256"
+            self._color_mode = "truecolor"
+        else:
+            self._color_mode = "xterm256"
+        return self._color_mode
 
     @override
     def start(self) -> None:
