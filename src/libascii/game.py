@@ -21,10 +21,14 @@ class Game:
         bg: Color | None = None,
         filler: str = " ",
         fps: int = 60,
+        font_size: int = 10,
         renderer: Renderer | None = None,
     ) -> None:
         if fps <= 0:
             msg = "fps must be positive"
+            raise ValueError(msg)
+        if font_size <= 0:
+            msg = "font_size must be positive"
             raise ValueError(msg)
 
         self.width = width
@@ -36,6 +40,7 @@ class Game:
 
         self.filler = filler
         self._fps = fps
+        self.font_size = font_size
 
         self.grid = Grid(width, height, filler)
 
@@ -55,6 +60,7 @@ class Game:
                 self.default_bg,
                 self.default_fg,
                 fps,
+                font_size,
             )
 
         self._bindings = cast(BindingMixin, self.renderer)

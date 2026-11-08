@@ -20,6 +20,7 @@ class TkRenderer(Renderer, BindingMixin):
         default_bg: Color,
         default_fg: Color,
         fps: int,
+        font_size: int = 10,
     ) -> None:
         BindingMixin.__init__(self)
         self.width = width
@@ -28,6 +29,7 @@ class TkRenderer(Renderer, BindingMixin):
         self.default_bg = default_bg
         self.default_fg = default_fg
         self._fps = fps
+        self.font_size = font_size
 
         self.root: tk.Tk | None = None
         self.area: tk.Text | None = None
@@ -45,7 +47,7 @@ class TkRenderer(Renderer, BindingMixin):
             self.root,
             width=self.width,
             height=self.height,
-            font=("Courier", 10),
+            font=("Courier", self.font_size),
             bg=str(self.default_bg),
             fg=str(self.default_fg),
             padx=0,

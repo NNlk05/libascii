@@ -18,6 +18,7 @@ class HeadlessRenderer(Renderer, BindingMixin):
         default_bg: Color,
         default_fg: Color,
         fps: int,
+        font_size: int = 10,
     ) -> None:
         BindingMixin.__init__(self)
         self.width = width
