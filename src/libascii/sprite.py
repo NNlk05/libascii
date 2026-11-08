@@ -9,6 +9,7 @@ def _mirror(
     flip_h: bool,
     flip_v: bool,
 ) -> list[list[str]]:
+    result = [list(row) for row in chars]
     if flip_h:
         result = [list(reversed(row)) for row in result]
     if flip_v:

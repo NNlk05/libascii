@@ -7,8 +7,10 @@ if TYPE_CHECKING:
     from .camera import Camera
     from .chars import CharLib
     from .color import Color
+    from .collision import grid_cell_overlap, point_in_rect, rect_overlap
     from .game import Game
     from .grid import Grid
+    from .input import ActionMap
     from .shapes.ellipse import Ellipse
     from .shapes.line import Line
     from .shapes.rectangle import Rectangle
@@ -17,7 +19,6 @@ if TYPE_CHECKING:
     from .sound import Sound
     from .sprite import Sprite
     from .tilemap import Tilemap
-    from .input import ActionMap
 
 __all__ = [
     "Camera",
@@ -34,6 +35,9 @@ __all__ = [
     "Sprite",
     "Tilemap",
     "ActionMap",
+    "rect_overlap",
+    "point_in_rect",
+    "grid_cell_overlap",
 ]
 
 _IMPORT_MAP = {
@@ -51,6 +55,9 @@ _IMPORT_MAP = {
     "Sprite": (".sprite", "Sprite"),
     "Tilemap": (".tilemap", "Tilemap"),
     "ActionMap": (".input", "ActionMap"),
+    "rect_overlap": (".collision", "rect_overlap"),
+    "point_in_rect": (".collision", "point_in_rect"),
+    "grid_cell_overlap": (".collision", "grid_cell_overlap"),
 }
 
 
