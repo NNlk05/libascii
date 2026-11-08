@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .sound import Sound
     from .sprite import Sprite
     from .tilemap import Tilemap
+    from .input import ActionMap
 
 __all__ = [
     "Camera",
@@ -32,6 +33,7 @@ __all__ = [
     "Sound",
     "Sprite",
     "Tilemap",
+    "ActionMap",
 ]
 
 _IMPORT_MAP = {
@@ -48,6 +50,7 @@ _IMPORT_MAP = {
     "Sound": (".sound", "Sound"),
     "Sprite": (".sprite", "Sprite"),
     "Tilemap": (".tilemap", "Tilemap"),
+    "ActionMap": (".input", "ActionMap"),
 }
 
 

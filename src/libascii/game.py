@@ -5,6 +5,7 @@ from types import TracebackType
 
 from .color import Color
 from .grid import Grid
+from .input import ActionMap
 from .renderers import Renderer, TkRenderer
 from .shapes.shape import Shape
 
@@ -57,6 +58,8 @@ class Game:
 
         self.renderer.on_mouse_down(self._capture_mouse_coords)
         self.renderer.on_mouse_up(self._capture_mouse_coords)
+
+        self._action_map = ActionMap(self.renderer)
 
     @property
     def fps(self) -> int:
@@ -128,6 +131,18 @@ class Game:
 
     def on_frame(self, callback: Callable[[], None]) -> None:
         self.renderer.on_frame(callback)
+
+    def bind_action(self, name: str, keybinding: str) -> None:
+        self._action_map.bind_action(name, keybinding)
+
+    def action_pressed(self, name: str) -> bool:
+        return self._action_map.is_pressed(name)
+
+    def action_was_pressed(self, name: str) -> bool:
+        return self._action_map.was_pressed(name)
+
+    def action_is_held(self, name: str) -> bool:
+        return self._action_map.is_held(name)
 
     def draw(self, shape: Shape) -> None:
         shape.draw(self.grid)
