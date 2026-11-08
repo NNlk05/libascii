@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A `_show_debug` flag to show debug info
 - A `Camera` class; for only displaying a small part ("viewport") of the whole grid
 - A `Spite` class for creating sprites, includes serialize and deserialize from a XPM-like format.
+- A `Tilemap` class for creating a tilesets and tilemaps for displaying on the grid
 
 ### Changed
 - Lots of optimization, including dirty flag on grid to prevent unnecessary rendering
