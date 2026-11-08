@@ -118,9 +118,9 @@ class SnakeGame:
         self.game.clear()
         if self.food is not None:
             self.game.set(self.food[0], self.food[1], FOOD_CHAR, FOOD_COLOR)
+        self.particles.draw(self.game.grid)
         for segment in self.snake:
             self.game.set(segment[0], segment[1], SNAKE_CHAR, SNAKE_COLOR)
-        self.particles.draw(self.game.grid)
         draw_text(
             self.game.grid,
             0,
