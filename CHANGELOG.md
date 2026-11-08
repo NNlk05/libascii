@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-08
+
 ### Added
 
 - A particle system
@@ -14,13 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A stack-based `Scene`  system for creating, managing, and enter/exiting scenes
 - More tests
 - Text utils in `text.py`
--  `font_size` pram in `Game` for controlling font size
+- `font_size` pram in `Game` for controlling font size
 
 ### Changed
 
 - Some dict keys in `libascii.chars` have been renamed (`BLACK` to `FILLED` and all `WHITE` to `OUTLINE`) to better fit now the grid is colored.
 
-## [0.3.0] - 2026-11-07
+### [0.3.0] - 2026-11-07
 
 ### Added
 
