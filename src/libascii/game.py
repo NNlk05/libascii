@@ -37,6 +37,9 @@ class Game:
 
         self.grid = Grid(width, height, filler)
 
+        self._show_debug = False
+        self._last_mouse_coords: tuple[int, int] | None = None
+
         self._running = False
         self.started = False
 
@@ -52,6 +55,9 @@ class Game:
                 fps,
             )
 
+        self.renderer.on_mouse_down(self._capture_mouse_coords)
+        self.renderer.on_mouse_up(self._capture_mouse_coords)
+
     @property
     def fps(self) -> int:
         return self._fps
@@ -63,6 +69,14 @@ class Game:
             raise ValueError(msg)
         self._fps = value
         self.renderer.set_fps(value)
+
+    @property
+    def show_debug(self) -> bool:
+        return self._show_debug
+
+    @show_debug.setter
+    def show_debug(self, value: bool) -> None:
+        self._show_debug = bool(value)
 
     def on_key_down(
         self,
@@ -89,6 +103,28 @@ class Game:
         callback: Callable[[tuple[int, int]], None],
     ) -> None:
         self.renderer.on_mouse_up(callback)
+
+    def _capture_mouse_coords(self, coord: tuple[int, int]) -> None:
+        self._last_mouse_coords = coord
+
+    def _write_debug_line(self) -> None:
+        mouse = self._last_mouse_coords
+        if mouse is None:
+            mouse_str = "None"
+        else:
+            mouse_str = f"({mouse[0]}, {mouse[1]})"
+        self.text(
+            0,
+            self.height - 1,
+            "FPS="
+            + str(self._fps)
+            + " Grid="
+            + str(self.grid.width)
+            + "x"
+            + str(self.grid.height)
+            + " Mouse="
+            + mouse_str,
+        )
 
     def on_frame(self, callback: Callable[[], None]) -> None:
         self.renderer.on_frame(callback)
@@ -128,6 +164,8 @@ class Game:
     def refresh(self) -> None:
         if not self.grid.dirty:
             return
+        if self._show_debug:
+            self._write_debug_line()
         self.renderer.render(self.grid)
         self.grid.mark_clean()
 
