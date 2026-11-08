@@ -45,6 +45,9 @@ dev = [
     "ty>=0.0.99",
 ]
 
+[project.optional-dependencies]
+terminal = ["colorama>=0.4.6"]
+
 [tool.ruff]
 target-version = "py313"
 line-length = 79

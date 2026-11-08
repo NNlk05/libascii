@@ -69,4 +69,5 @@ class BindingMixin:
 
 
 from .headless import HeadlessRenderer  # noqa: E402
+from .terminal import TerminalRenderer  # noqa: E402
 from .tk import TkRenderer  # noqa: E402

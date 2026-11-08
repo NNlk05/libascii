@@ -133,6 +133,11 @@ dependencies = [
     { name = "simpleaudio" },
 ]
 
+[package.optional-dependencies]
+terminal = [
+    { name = "colorama" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "pip-licenses" },
@@ -144,7 +149,11 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "simpleaudio", specifier = ">=1.0.4" }]
+requires-dist = [
+    { name = "colorama", marker = "extra == 'terminal'", specifier = ">=0.4.6" },
+    { name = "simpleaudio", specifier = ">=1.0.4" },
+]
+provides-extras = ["terminal"]
 
 [package.metadata.requires-dev]
 dev = [
