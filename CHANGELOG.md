@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A particle system
 - Collision system
+- A stack-based `Scene`  system for creating, managing, and enter/exiting scenes
 
 ### Changed
 
