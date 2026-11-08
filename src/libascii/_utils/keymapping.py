@@ -26,7 +26,7 @@ def expand_keybinding(keybinding: str) -> list[tuple[frozenset[str], str]]:
                 pattern_combos = expanded
             elif token.startswith("{") and token.endswith("}"):
                 choices = [choice.strip() for choice in token[1:-1].split(",")]
-                expanded = []
+                expanded: list[tuple[frozenset[str], str | None]] = []
                 for modifiers, key in pattern_combos:
                     for choice in choices:
                         expanded.append((modifiers | {choice}, key))

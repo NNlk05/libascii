@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from .renderers import Renderer
+from typing import cast
+
+from .renderers import BindingMixin, Renderer
 
 
 class ActionMap:
@@ -11,13 +13,17 @@ class ActionMap:
         self._frame = 0
         self._pressed_frame: dict[str, int] = {}
 
-        renderer.on_frame(self._on_frame)
+        cast(BindingMixin, renderer).on_frame(self._on_frame)
 
     def bind_action(self, name: str, keybinding: str) -> None:
         self._bindings[name] = keybinding
         self._pressed[name] = False
-        self._renderer.on_key_down(keybinding, lambda _: self._key_down(name))
-        self._renderer.on_key_up(keybinding, lambda _: self._key_up(name))
+        cast(BindingMixin, self._renderer).on_key_down(
+            keybinding, lambda _: self._key_down(name)
+        )
+        cast(BindingMixin, self._renderer).on_key_up(
+            keybinding, lambda _: self._key_up(name)
+        )
 
     def _key_down(self, name: str) -> None:
         self._pressed[name] = True

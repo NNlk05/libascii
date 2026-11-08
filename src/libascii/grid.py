@@ -1,3 +1,5 @@
+from typing import override
+
 from libascii.color import Color
 
 
@@ -106,6 +108,7 @@ class Grid:
     def clear(self) -> None:
         self.fill(self.filler, None)
 
+    @override
     def __repr__(self) -> str:
         return (
             f"Grid(width={self.width}, height={self.height}, "

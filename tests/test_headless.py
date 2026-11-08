@@ -1,3 +1,5 @@
+from typing import override
+
 from libascii import Color, Game, Grid
 from libascii.camera import Camera
 from libascii.renderers import HeadlessRenderer
@@ -94,6 +96,7 @@ def test_refresh_skips_render_when_clean() -> None:
             super().__init__(5, 3, "test", Color("black"), Color("white"), 60)
             self.render_calls = 0
 
+        @override
         def render(
             self,
             grid: Grid,

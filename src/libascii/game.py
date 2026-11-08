@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from types import TracebackType
+from typing import cast
 
 from .color import Color
 from .grid import Grid
 from .input import ActionMap
-from .renderers import Renderer, TkRenderer
+from .renderers import BindingMixin, Renderer, TkRenderer
 from .shapes.shape import Shape
 
 
@@ -56,8 +57,10 @@ class Game:
                 fps,
             )
 
-        self.renderer.on_mouse_down(self._capture_mouse_coords)
-        self.renderer.on_mouse_up(self._capture_mouse_coords)
+        self._bindings = cast(BindingMixin, self.renderer)
+
+        self._bindings.on_mouse_down(self._capture_mouse_coords)
+        self._bindings.on_mouse_up(self._capture_mouse_coords)
 
         self._action_map = ActionMap(self.renderer)
 
@@ -86,26 +89,26 @@ class Game:
         keybinding: str,
         callback: Callable[[str], None],
     ) -> None:
-        self.renderer.on_key_down(keybinding, callback)
+        self._bindings.on_key_down(keybinding, callback)
 
     def on_key_up(
         self,
         keybinding: str,
         callback: Callable[[str], None],
     ) -> None:
-        self.renderer.on_key_up(keybinding, callback)
+        self._bindings.on_key_up(keybinding, callback)
 
     def on_mouse_down(
         self,
         callback: Callable[[tuple[int, int]], None],
     ) -> None:
-        self.renderer.on_mouse_down(callback)
+        self._bindings.on_mouse_down(callback)
 
     def on_mouse_up(
         self,
         callback: Callable[[tuple[int, int]], None],
     ) -> None:
-        self.renderer.on_mouse_up(callback)
+        self._bindings.on_mouse_up(callback)
 
     def _capture_mouse_coords(self, coord: tuple[int, int]) -> None:
         self._last_mouse_coords = coord
@@ -130,7 +133,7 @@ class Game:
         )
 
     def on_frame(self, callback: Callable[[], None]) -> None:
-        self.renderer.on_frame(callback)
+        self._bindings.on_frame(callback)
 
     def bind_action(self, name: str, keybinding: str) -> None:
         self._action_map.bind_action(name, keybinding)

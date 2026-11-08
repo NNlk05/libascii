@@ -1,8 +1,11 @@
+from typing import override
+
 from ..grid import Grid
 from .shape import StyledShape
 
 
 class Triangle(StyledShape):
+    @override
     def draw(self, grid: Grid) -> None:
         if self.height == 0 or self.width == 0:
             return
@@ -51,7 +54,10 @@ class Triangle(StyledShape):
                 else:
                     grid.set(x, y, self.fill, self.fill_color)
 
-    def _border_char(self, x: int, y: int, left: int, right: int) -> str:
+    @override
+    def _border_char(
+        self, x: int, y: int, left: int = 0, right: int = 0
+    ) -> str:
         if y == self.height - 1 and self.border_bottom:
             return self.border_bottom
         if x == left and self.border_left:

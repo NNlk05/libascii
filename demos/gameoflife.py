@@ -97,7 +97,12 @@ def main() -> None:
     game.on_key_down("Right", lambda _: move_cursor(1, 0))
     game.on_key_down("space", lambda _: toggle_cell())
     game.on_key_down("Return", lambda _: toggle_pause())
-    game.on_frame(lambda: (tick(), render()))
+
+    def on_frame_callback() -> None:
+        tick()
+        render()
+
+    game.on_frame(on_frame_callback)
 
     with game:
         pass

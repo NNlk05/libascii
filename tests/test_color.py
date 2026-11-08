@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from libascii import Color
 
 
@@ -58,7 +60,7 @@ def test_invalid_rgb_raises() -> None:
         ("a", "b", "c"),
     ]:
         try:
-            Color(bad)
+            Color(cast(Any, bad))
         except ValueError:
             pass
         else:
@@ -68,7 +70,7 @@ def test_invalid_rgb_raises() -> None:
 def test_invalid_hex_raises() -> None:
     for bad in ["ff0000", "#gg0000", "#ff00", "#ff00000", 123]:
         try:
-            Color.from_hex(bad)
+            Color.from_hex(cast(str, bad))
         except ValueError:
             pass
         else:

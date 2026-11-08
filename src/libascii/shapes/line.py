@@ -1,3 +1,5 @@
+from typing import override
+
 from ..color import Color
 from ..grid import Grid
 from .shape import Shape
@@ -20,6 +22,7 @@ class Line(Shape):
         self.char = char
         self.color = color if color is not None else Color("")
 
+    @override
     def draw(self, grid: Grid) -> None:
         content = grid.content
         colors = grid.colors

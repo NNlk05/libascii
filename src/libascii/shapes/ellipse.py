@@ -1,3 +1,5 @@
+from typing import override
+
 from math import ceil, floor, sqrt
 
 from ..grid import Grid
@@ -5,6 +7,7 @@ from .shape import StyledShape
 
 
 class Ellipse(StyledShape):
+    @override
     def draw(self, grid: Grid) -> None:
         width = self.width
         height = self.height

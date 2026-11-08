@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tkinter as tk
 from collections.abc import Callable
+from typing import override
 
 from ..camera import Camera
 from ..color import Color
@@ -33,6 +34,7 @@ class TkRenderer(Renderer, BindingMixin):
 
         self._running = False
 
+    @override
     def start(self) -> None:
         root = tk.Tk()
         root.title(self.title)
@@ -82,11 +84,15 @@ class TkRenderer(Renderer, BindingMixin):
                 return
             for callback in self._frame_bindings:
                 callback()
+            assert self.root is not None
             self.root.after(round(1000 / self._fps), _tick)
 
+        assert self.root is not None
         self.root.after(round(1000 / self._fps), _tick)
         self.root.mainloop()
 
+    @override
+    @override
     def stop(self) -> None:
         if not self._running:
             return
@@ -94,6 +100,7 @@ class TkRenderer(Renderer, BindingMixin):
         if self.root is not None:
             self.root.quit()
 
+    @override
     def render(
         self,
         grid: Grid,
@@ -133,6 +140,8 @@ class TkRenderer(Renderer, BindingMixin):
         start_row: int = 0,
         end_row: int | None = None,
     ) -> None:
+        if self.area is None:
+            return
         tag_ranges: dict[str, list[tuple[str, str]]] = {}
         if end_row is None:
             end_row = len(colors)
@@ -175,6 +184,8 @@ class TkRenderer(Renderer, BindingMixin):
         grid: Grid,
         region: tuple[int, int, int, int],
     ) -> None:
+        if self.area is None:
+            return
         rx, ry, rw, rh = region
         bottom = min(ry + rh, grid.height)
         right = min(rx + rw, grid.width)
@@ -191,17 +202,20 @@ class TkRenderer(Renderer, BindingMixin):
         colors = grid.colors
         self._apply_colors(colors, start_row=ry, end_row=bottom)
 
+    @override
     def set_title(self, title: str) -> None:
         self.title = title
         if self.root is not None:
             self.root.title(title)
 
+    @override
     def set_size(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
         if self.area is not None:
             self.area.config(width=width, height=height)
 
+    @override
     def set_fps(self, fps: int) -> None:
         if fps <= 0:
             msg = "fps must be positive"

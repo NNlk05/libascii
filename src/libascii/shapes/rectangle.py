@@ -1,8 +1,11 @@
+from typing import override
+
 from ..grid import Grid
 from .shape import StyledShape
 
 
 class Rectangle(StyledShape):
+    @override
     def draw(self, grid: Grid) -> None:
         width = self.width
         height = self.height

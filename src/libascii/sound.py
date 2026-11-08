@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 
 import simpleaudio as sa
 
@@ -12,7 +13,7 @@ class Sound:
             raise ValueError(msg) from exc
 
     def play(self) -> sa.PlayObject:
-        return self.wave_object.play()
+        return cast(sa.PlayObject, self.wave_object.play())
 
     def stop(self, play_object: sa.PlayObject) -> None:
         if play_object is None:
@@ -24,7 +25,7 @@ class Sound:
         if play_object is None:
             msg = "play_object must not be None"
             raise ValueError(msg)
-        return play_object.is_playing()
+        return cast(bool, play_object.is_playing())
 
     def wait_done(self, play_object: sa.PlayObject) -> None:
         if play_object is None:

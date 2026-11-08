@@ -1,3 +1,6 @@
+from typing import override
+
+
 class Color:
     def __init__(
         self, value: str | tuple[int, int, int] | None = None
@@ -30,16 +33,20 @@ class Color:
             raise ValueError(msg) from None
         return cls(hex_str)
 
+    @override
     def __str__(self) -> str:
         return self.value if self.value is not None else ""
 
+    @override
     def __repr__(self) -> str:
         return f"Color({self.value!r})"
 
+    @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Color):
             return NotImplemented
         return self.value == other.value
 
+    @override
     def __hash__(self) -> int:
         return hash(self.value)

@@ -1,3 +1,5 @@
+from typing import override
+
 from libascii import Scene, SceneManager
 from libascii.grid import Grid
 
@@ -10,15 +12,19 @@ class MockScene(Scene):
         self.updated_dt: float | None = None
         self.drew_grid = False
 
+    @override
     def enter(self) -> None:
         self.entered = True
 
+    @override
     def exit(self) -> None:
         self.exited = True
 
+    @override
     def update(self, dt: float) -> None:
         self.updated_dt = dt
 
+    @override
     def draw(self, grid: Grid) -> None:
         self.drew_grid = True
 
