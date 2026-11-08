@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A stack-based `Scene`  system for creating, managing, and enter/exiting scenes
 - More tests
 - Text utils in `text.py`
+-  `font_size` pram in `Game` for controlling font size
 
 ### Changed
 
