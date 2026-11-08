@@ -17,7 +17,12 @@ class Renderer(ABC):
         pass
 
     @abstractmethod
-    def render(self, grid: Grid, camera: Camera | None = None) -> None:
+    def render(
+        self,
+        grid: Grid,
+        camera: Camera | None = None,
+        region: tuple[int, int, int, int] | None = None,
+    ) -> None:
         pass
 
     @abstractmethod

@@ -27,6 +27,7 @@ class HeadlessRenderer(Renderer, BindingMixin):
         self._fps = fps
 
         self.last_grid: Grid | None = None
+        self.last_region: tuple[int, int, int, int] | None = None
         self._running = False
 
     def start(self) -> None:
@@ -35,8 +36,14 @@ class HeadlessRenderer(Renderer, BindingMixin):
     def stop(self) -> None:
         self._running = False
 
-    def render(self, grid: Grid, camera: Camera | None = None) -> None:
+    def render(
+        self,
+        grid: Grid,
+        camera: Camera | None = None,
+        region: tuple[int, int, int, int] | None = None,
+    ) -> None:
         self.last_grid = grid
+        self.last_region = region
 
     def set_title(self, title: str) -> None:
         self.title = title

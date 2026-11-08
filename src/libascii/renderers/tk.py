@@ -94,38 +94,52 @@ class TkRenderer(Renderer, BindingMixin):
         if self.root is not None:
             self.root.quit()
 
-    def render(self, grid: Grid, camera: Camera | None = None) -> None:
+    def render(
+        self,
+        grid: Grid,
+        camera: Camera | None = None,
+        region: tuple[int, int, int, int] | None = None,
+    ) -> None:
         if self.area is None:
             return
 
-        if camera is None:
-            content = grid.content
-            colors = grid.colors
+        if region is None:
+            if camera is None:
+                content = grid.content
+                colors = grid.colors
+            else:
+                ox, oy = camera.offset
+                vw = camera.viewport_width
+                vh = camera.viewport_height
+                content = [
+                    row[ox : ox + vw] for row in grid.content[oy : oy + vh]
+                ]
+                colors = [
+                    row[ox : ox + vw] for row in grid.colors[oy : oy + vh]
+                ]
+
+            self.area.delete("1.0", tk.END)
+
+            rows = ["".join(row) for row in content]
+            self.area.insert("1.0", "\n".join(rows) + "\n")
+
+            self._apply_colors(colors)
         else:
-            ox, oy = camera.offset
-            vw = camera.viewport_width
-            vh = camera.viewport_height
-            content = [row[ox : ox + vw] for row in grid.content[oy : oy + vh]]
-            colors = [row[ox : ox + vw] for row in grid.colors[oy : oy + vh]]
+            self._render_region(grid, region)
 
-        self.area.delete("1.0", tk.END)
-
-        rows = ["".join(row) for row in content]
-        self.area.insert("1.0", "\n".join(rows) + "\n")
-
-        has_color = False
-        for row in colors:
-            for color in row:
-                if color is not None:
-                    has_color = True
-                    break
-            if has_color:
-                break
-        if not has_color:
-            return
-
+    def _apply_colors(
+        self,
+        colors: list[list[Color | None]],
+        start_row: int = 0,
+        end_row: int | None = None,
+    ) -> None:
         tag_ranges: dict[str, list[tuple[str, str]]] = {}
-        for y, row in enumerate(colors):
+        if end_row is None:
+            end_row = len(colors)
+        for y in range(start_row, end_row):
+            if y >= len(colors):
+                break
+            row = colors[y]
             line_prefix = f"{y + 1}."
             x = 0
             row_len = len(row)
@@ -155,6 +169,27 @@ class TkRenderer(Renderer, BindingMixin):
             self.area.tag_config(color_str, foreground=color_str)
             for start_idx, end_idx in ranges:
                 self.area.tag_add(color_str, start_idx, end_idx)
+
+    def _render_region(
+        self,
+        grid: Grid,
+        region: tuple[int, int, int, int],
+    ) -> None:
+        rx, ry, rw, rh = region
+        bottom = min(ry + rh, grid.height)
+        right = min(rx + rw, grid.width)
+
+        for y in range(ry, bottom):
+            line = f"{y + 1}."
+            row_slice = grid.content[y][rx:right]
+            self.area.delete(f"{line}{rx}", f"{line}{right}")
+            self.area.insert(f"{line}{rx}", "".join(row_slice))
+
+        for tag in self.area.tag_names():
+            self.area.tag_remove(tag, f"{ry + 1}.0", f"{bottom}.end")
+
+        colors = grid.colors
+        self._apply_colors(colors, start_row=ry, end_row=bottom)
 
     def set_title(self, title: str) -> None:
         self.title = title

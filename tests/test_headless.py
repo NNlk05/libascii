@@ -1,4 +1,5 @@
 from libascii import Color, Game, Grid
+from libascii.camera import Camera
 from libascii.renderers import HeadlessRenderer
 
 
@@ -93,9 +94,14 @@ def test_refresh_skips_render_when_clean() -> None:
             super().__init__(5, 3, "test", Color("black"), Color("white"), 60)
             self.render_calls = 0
 
-        def render(self, grid: Grid) -> None:
+        def render(
+            self,
+            grid: Grid,
+            camera: Camera | None = None,
+            region: tuple[int, int, int, int] | None = None,
+        ) -> None:
             self.render_calls += 1
-            super().render(grid)
+            super().render(grid, camera=camera, region=region)
 
     renderer = CountingRenderer()
     game = Game(width=5, height=3, renderer=renderer)

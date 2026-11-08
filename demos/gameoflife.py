@@ -3,8 +3,8 @@ from libascii.chars import get_char
 
 ALIVE = get_char("MAIN", "BLOCK")
 DEAD = " "
-CURSOR_OUTLINE = get_char("MAIN", "CIRCLE_WHITE")
-CURSOR_FILLED = get_char("MAIN", "CIRCLE_BLACK")
+CURSOR_OUTLINE = get_char("MAIN", "CIRCLE_OUTLINE")
+CURSOR_FILLED = get_char("MAIN", "CIRCLE_FILLED")
 
 ALIVE_COLOR = Color("white")
 DEAD_COLOR = Color("black")
