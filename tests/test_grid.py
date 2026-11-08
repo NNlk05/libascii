@@ -130,3 +130,38 @@ def test_in_bounds() -> None:
     assert grid.in_bounds(0, 2) is False
     assert grid.in_bounds(-1, 0) is False
     assert grid.in_bounds(0, -1) is False
+
+
+def test_dirty_flag_set() -> None:
+    grid = Grid(3, 3)
+    assert grid.dirty is False
+    grid.set(0, 0, "X")
+    assert grid.dirty is True
+
+
+def test_dirty_flag_set_many() -> None:
+    grid = Grid(3, 3)
+    grid.set_many([(0, 0, "a", None)])
+    assert grid.dirty is True
+
+
+def test_dirty_flag_fill() -> None:
+    grid = Grid(3, 3)
+    grid.fill("#")
+    assert grid.dirty is True
+
+
+def test_dirty_flag_clear() -> None:
+    grid = Grid(3, 3)
+    grid.fill("#")
+    assert grid.dirty is True
+    grid.clear()
+    assert grid.dirty is True
+
+
+def test_dirty_mark_clean() -> None:
+    grid = Grid(3, 3)
+    grid.set(0, 0, "X")
+    assert grid.dirty is True
+    grid.mark_clean()
+    assert grid.dirty is False

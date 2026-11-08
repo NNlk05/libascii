@@ -85,3 +85,26 @@ def test_last_grid_after_direct_render() -> None:
     assert renderer.last_grid is grid
     char, _ = renderer.last_grid.get(2, 1)
     assert char == "Z"
+
+
+def test_refresh_skips_render_when_clean() -> None:
+    class CountingRenderer(HeadlessRenderer):
+        def __init__(self) -> None:
+            super().__init__(5, 3, "test", Color("black"), Color("white"), 60)
+            self.render_calls = 0
+
+        def render(self, grid: Grid) -> None:
+            self.render_calls += 1
+            super().render(grid)
+
+    renderer = CountingRenderer()
+    game = Game(width=5, height=3, renderer=renderer)
+    game.set(0, 0, "X")
+    game.refresh()
+    assert renderer.render_calls == 1
+    game.refresh()
+    assert renderer.render_calls == 1
+
+    game.set(1, 1, "Y")
+    game.refresh()
+    assert renderer.render_calls == 2

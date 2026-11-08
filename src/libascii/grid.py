@@ -15,6 +15,7 @@ class Grid:
         self._colors: list[list[Color | None]] = [
             [None for _ in range(width)] for _ in range(height)
         ]
+        self._dirty: bool = False
 
     @property
     def content(self) -> list[list[str]]:
@@ -23,6 +24,13 @@ class Grid:
     @property
     def colors(self) -> list[list[Color | None]]:
         return self._colors
+
+    @property
+    def dirty(self) -> bool:
+        return self._dirty
+
+    def mark_clean(self) -> None:
+        self._dirty = False
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
@@ -45,6 +53,7 @@ class Grid:
         self._check_bounds(x, y)
         self._content[y][x] = char
         self._colors[y][x] = color
+        self._dirty = True
 
     def set_many(
         self, cells: list[tuple[int, int, str, Color | None]]
@@ -57,6 +66,7 @@ class Grid:
             if 0 <= x < width and 0 <= y < height:
                 content[y][x] = char
                 colors[y][x] = color
+        self._dirty = True
 
     def get(self, x: int, y: int) -> tuple[str, Color | None]:
         self._check_bounds(x, y)
@@ -81,6 +91,7 @@ class Grid:
         for y in range(self.height):
             content[y] = [char] * width
             colors[y] = [color] * width
+        self._dirty = True
 
     def clear(self) -> None:
         self.fill(self.filler, None)

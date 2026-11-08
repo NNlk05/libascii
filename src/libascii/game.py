@@ -126,7 +126,10 @@ class Game:
         )
 
     def refresh(self) -> None:
+        if not self.grid.dirty:
+            return
         self.renderer.render(self.grid)
+        self.grid.mark_clean()
 
     def start(self) -> None:
         if self.started:
