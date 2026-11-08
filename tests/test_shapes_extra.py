@@ -3,7 +3,6 @@ from libascii.shapes import Ellipse, Line, Rectangle, Triangle
 
 
 def test_shape_is_abstract() -> None:
-    """Shape cannot be instantiated directly (abstract class)."""
     from libascii.shapes.shape import Shape
 
     import abc
