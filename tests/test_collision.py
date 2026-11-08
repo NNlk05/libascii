@@ -12,13 +12,9 @@ def test_rect_overlap_disjoint() -> None:
 
 
 def test_rect_overlap_touching_counts_as_overlap() -> None:
-    # Right edge of r1 touches left edge of r2
     assert rect_overlap((0, 0, 2, 2), (2, 0, 2, 2)) is True
-    # Bottom edge of r1 touches top edge of r2
     assert rect_overlap((0, 0, 2, 2), (0, 2, 2, 2)) is True
-    # Left edge of r1 touches right edge of r2
     assert rect_overlap((2, 0, 2, 2), (0, 0, 2, 2)) is True
-    # Top edge of r1 touches bottom edge of r2
     assert rect_overlap((0, 2, 2, 2), (0, 0, 2, 2)) is True
 
 
@@ -37,7 +33,6 @@ def test_rect_overlap_partial() -> None:
 
 
 def test_rect_overlap_zero_width_or_height() -> None:
-    # Zero-width rect at same x as another rect touches at that edge
     assert rect_overlap((0, 0, 0, 5), (0, 0, 2, 2)) is True
     assert rect_overlap((0, 0, 5, 0), (0, 0, 2, 2)) is True
 
