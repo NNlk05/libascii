@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collision system
 - A stack-based `Scene`  system for creating, managing, and enter/exiting scenes
 - More tests
+- Text utils in `text.py`
 
 ### Changed
 
