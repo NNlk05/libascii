@@ -145,7 +145,7 @@ def test_terminal_start_renders_empty_grid() -> None:
     )
     renderer.start()
     output = stream.getvalue()
-    assert "   \n   \n" in output
+    assert "   \r\n   \r\n" in output
 
 
 def test_terminal_set_title() -> None:

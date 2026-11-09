@@ -4,6 +4,8 @@ import importlib
 import os
 import sys
 import threading
+import time
+import atexit
 from typing import Any, TextIO, override
 from ..color import Color
 from ..grid import Grid
@@ -362,7 +364,17 @@ class _InputDriver:
             pass
 
     def _run(self) -> None:
+        frame_interval = 1.0 / self._renderer._fps
+        last_frame = time.monotonic()
         while not self._stop_event.is_set():
+            now = time.monotonic()
+            if now - last_frame >= frame_interval:
+                for callback in list(self._renderer._frame_bindings):
+                    try:
+                        callback()
+                    except Exception:
+                        pass
+                last_frame = now
             data = self._read_bytes()
             if data is None or len(data) == 0:
                 continue
@@ -491,6 +503,8 @@ class TerminalRenderer(Renderer, BindingMixin):
         self._running = False
         self._colorama_initialized = False
         self._color_mode: str | None = None
+        self._screen_cleared = False
+        self._cursor_hidden = False
         self._input_driver: _InputDriver | None = None
 
     def _init_colorama(self) -> None:
@@ -520,10 +534,19 @@ class TerminalRenderer(Renderer, BindingMixin):
         self._input_driver.start()
         empty_grid = Grid(self.width, self.height)
         self.render(empty_grid)
+        self._hide_cursor()
+        if sys.stdin.isatty():
+            thread = self._input_driver._thread
+            if thread is not None:
+                try:
+                    thread.join()
+                finally:
+                    self.stop()
 
     @override
     def stop(self) -> None:
         self._running = False
+        self._show_cursor()
         if self._input_driver is not None:
             self._input_driver.stop()
             self._input_driver = None
@@ -564,10 +587,38 @@ class TerminalRenderer(Renderer, BindingMixin):
                     parts.append("\x1b[0m")
                 x = end
             lines.append("".join(parts))
-        result = "\n".join(lines) + "\n"
+        result = "\r\n".join(lines) + "\r\n"
         if mode != "plain":
+            if not self._screen_cleared:
+                result = "\x1b[2J\x1b[H" + result
+                self._screen_cleared = True
+            else:
+                result = "\x1b[H" + result
             result += "\x1b[0m"
         self.stream.write(result)
+        flush = getattr(self.stream, "flush", None)
+        if flush is not None:
+            flush()
+
+    def _hide_cursor(self) -> None:
+        if self._cursor_hidden:
+            return
+        self._cursor_hidden = True
+        try:
+            self.stream.write("\x1b[?25l")
+            self.stream.flush()
+        except Exception:
+            pass
+
+    def _show_cursor(self) -> None:
+        if not self._cursor_hidden:
+            return
+        self._cursor_hidden = False
+        try:
+            self.stream.write("\x1b[?25h")
+            self.stream.flush()
+        except Exception:
+            pass
 
     @override
     def set_title(self, title: str) -> None:
