@@ -49,11 +49,19 @@ class Grid:
             return (0, 0, self.width, self.height)
         if not self._dirty_cells:
             return None
-        xs = [x for x, _ in self._dirty_cells]
-        ys = [y for _, y in self._dirty_cells]
-        rx = min(xs)
-        ry = min(ys)
-        return (rx, ry, max(xs) - rx + 1, max(ys) - ry + 1)
+        first_x, first_y = next(iter(self._dirty_cells))
+        min_x = max_x = first_x
+        min_y = max_y = first_y
+        for x, y in self._dirty_cells:
+            if x < min_x:
+                min_x = x
+            if x > max_x:
+                max_x = x
+            if y < min_y:
+                min_y = y
+            if y > max_y:
+                max_y = y
+        return (min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
