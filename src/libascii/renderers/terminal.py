@@ -559,34 +559,19 @@ class TerminalRenderer(Renderer, BindingMixin):
         region: tuple[int, int, int, int] | None = None,
     ) -> None:
         mode = self._detect_mode()
+        if region is None:
+            self._render_full(grid, mode)
+        else:
+            self._render_region(grid, region, mode)
+
+    def _render_full(self, grid: Grid, mode: str) -> None:
         lines: list[str] = []
         for y in range(grid.height):
-            row_chars = grid.content[y]
-            row_colors = grid.colors[y]
-            parts: list[str] = []
-            x = 0
-            while x < grid.width:
-                color = row_colors[x]
-                color_str = str(color) if color is not None else ""
-                escape = _color_escape(color_str, mode)
-                end = x + 1
-                while end < grid.width:
-                    next_color = row_colors[end]
-                    next_color_str = (
-                        str(next_color) if next_color is not None else ""
-                    )
-                    next_escape = _color_escape(next_color_str, mode)
-                    if next_escape != escape:
-                        break
-                    end += 1
-                run_chars = "".join(row_chars[x:end])
-                if escape:
-                    parts.append(escape)
-                parts.append(run_chars)
-                if escape:
-                    parts.append("\x1b[0m")
-                x = end
-            lines.append("".join(parts))
+            lines.append(
+                self._row_runs(
+                    grid.content[y], grid.colors[y], 0, grid.width, mode
+                )
+            )
         result = "\r\n".join(lines) + "\r\n"
         if mode != "plain":
             if not self._screen_cleared:
@@ -596,6 +581,64 @@ class TerminalRenderer(Renderer, BindingMixin):
                 result = "\x1b[H" + result
             result += "\x1b[0m"
         self.stream.write(result)
+        self._flush()
+
+    def _render_region(
+        self, grid: Grid, region: tuple[int, int, int, int], mode: str
+    ) -> None:
+        rx, ry, rw, rh = region
+        bottom = min(ry + rh, grid.height)
+        right = min(rx + rw, grid.width)
+        if bottom <= ry or right <= rx:
+            return
+        parts: list[str] = []
+        for y in range(ry, bottom):
+            parts.append(f"\x1b[{y + 1};{rx + 1}H")
+            parts.append(
+                self._row_runs(
+                    grid.content[y], grid.colors[y], rx, right, mode
+                )
+            )
+        result = "".join(parts)
+        if mode != "plain":
+            result += "\x1b[0m"
+        self.stream.write(result)
+        self._flush()
+
+    def _row_runs(
+        self,
+        row_chars: list[str],
+        row_colors: list[Color | None],
+        x_start: int,
+        x_end: int,
+        mode: str,
+    ) -> str:
+        parts: list[str] = []
+        x = x_start
+        while x < x_end:
+            color = row_colors[x]
+            color_str = str(color) if color is not None else ""
+            escape = _color_escape(color_str, mode)
+            end = x + 1
+            while end < x_end:
+                next_color = row_colors[end]
+                next_color_str = (
+                    str(next_color) if next_color is not None else ""
+                )
+                next_escape = _color_escape(next_color_str, mode)
+                if next_escape != escape:
+                    break
+                end += 1
+            run_chars = "".join(row_chars[x:end])
+            if escape:
+                parts.append(escape)
+            parts.append(run_chars)
+            if escape:
+                parts.append("\x1b[0m")
+            x = end
+        return "".join(parts)
+
+    def _flush(self) -> None:
         flush = getattr(self.stream, "flush", None)
         if flush is not None:
             flush()
