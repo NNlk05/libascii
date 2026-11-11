@@ -130,6 +130,7 @@ class Sprite:
         colors = self._current_colors()
         height = len(chars)
         width = len(chars[0]) if height > 0 else 0
+        cells: list[tuple[int, int, str, Color | None]] = []
         for row in range(height):
             grid_y = y + row
             if not 0 <= grid_y < grid.height:
@@ -140,7 +141,8 @@ class Sprite:
                 if not 0 <= grid_x < grid.width:
                     continue
                 color = None if color_row is None else color_row[col]
-                grid.set(grid_x, grid_y, chars[row][col], color)
+                cells.append((grid_x, grid_y, chars[row][col], color))
+        grid.set_many_unchecked(cells)
 
     @staticmethod
     def from_xpm_string(

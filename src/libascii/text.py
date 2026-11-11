@@ -47,6 +47,7 @@ def draw_text(
     align_mode: str = "left",
 ) -> None:
     available_width = max(0, grid.width - x)
+    cells: list[tuple[int, int, str, Color | None]] = []
     for row, line in enumerate(lines):
         aligned = align(line, available_width, align_mode)
         gy = y + row
@@ -55,4 +56,5 @@ def draw_text(
         for col, ch in enumerate(aligned):
             gx = x + col
             if 0 <= gx < grid.width:
-                grid.set(gx, gy, ch, color)
+                cells.append((gx, gy, ch, color))
+    grid.set_many_unchecked(cells)

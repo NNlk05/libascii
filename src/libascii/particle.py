@@ -80,7 +80,9 @@ class ParticleSystem:
         self.particles = [p for p in self.particles if not p.dead]
 
     def draw(self, grid: Grid) -> None:
+        cells: list[tuple[int, int, str, Color | None]] = []
         for particle in self.particles:
             px, py = particle.position
             if 0 <= px < grid.width and 0 <= py < grid.height:
-                grid.set(px, py, particle.char, particle.color)
+                cells.append((px, py, particle.char, particle.color))
+        grid.set_many_unchecked(cells)

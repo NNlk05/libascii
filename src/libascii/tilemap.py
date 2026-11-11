@@ -14,6 +14,7 @@ class Tilemap:
         self.tileset = tileset
 
     def draw(self, grid: Grid, ox: int, oy: int) -> None:
+        cells: list[tuple[int, int, str, Color | None]] = []
         for ty, row in enumerate(self.tile_grid):
             grid_y = oy + ty
             if not 0 <= grid_y < grid.height:
@@ -28,4 +29,5 @@ class Tilemap:
                     color = None
                 else:
                     char, color = entry
-                grid.set(grid_x, grid_y, char, color)
+                cells.append((grid_x, grid_y, char, color))
+        grid.set_many_unchecked(cells)

@@ -91,6 +91,17 @@ class Grid:
                 colors[y][x] = color
                 self._dirty_cells.add((x, y))
 
+    def set_many_unchecked(
+        self, cells: list[tuple[int, int, str, Color | None]]
+    ) -> None:
+        content = self._content
+        colors = self._colors
+        dirty_cells = self._dirty_cells
+        for x, y, char, color in cells:
+            content[y][x] = char
+            colors[y][x] = color
+            dirty_cells.add((x, y))
+
     def get(self, x: int, y: int) -> tuple[str, Color | None]:
         self._check_bounds(x, y)
         return self._content[y][x], self._colors[y][x]

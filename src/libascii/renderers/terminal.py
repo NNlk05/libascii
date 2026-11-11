@@ -223,10 +223,9 @@ def _parse_mouse_x10(data: bytes) -> tuple[int, int, int] | None:
     cx = data[4] if len(data) > 4 else 0
     cy = data[5] if len(data) > 5 else 0
     button = cb & 0x03
-    pressed = button != 0x03
     x = max(0, cx - 33)
     y = max(0, cy - 33)
-    return (button, x, y) if pressed else (button, x, y)
+    return (button, x, y)
 
 
 def _parse_mouse_sgr(data: bytes) -> tuple[int, int, int, bool] | None:
