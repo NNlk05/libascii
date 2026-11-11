@@ -9,15 +9,31 @@ def _mirror(
     flip_h: bool,
     flip_v: bool,
 ) -> list[list[str]]:
-    result = [list(row) for row in chars]
-    if flip_h:
-        result = [list(reversed(row)) for row in result]
+    if not flip_h and not flip_v:
+        return chars
+    result = chars
     if flip_v:
-        result = list(reversed(result))
+        result = result[::-1]
+    if flip_h:
+        result = [row[::-1] for row in result]
     return result
 
 
 class Sprite:
+    __slots__ = (
+        "frames",
+        "_colors",
+        "fps",
+        "loop",
+        "flip_h",
+        "flip_v",
+        "_frame_duration",
+        "_frame_index",
+        "_elapsed",
+        "_playing",
+        "_finished",
+    )
+
     def __init__(
         self,
         frames: list[list[list[str]]],
@@ -128,21 +144,7 @@ class Sprite:
     def draw(self, grid: Grid, x: int, y: int) -> None:
         chars = self._current_chars()
         colors = self._current_colors()
-        height = len(chars)
-        width = len(chars[0]) if height > 0 else 0
-        cells: list[tuple[int, int, str, Color | None]] = []
-        for row in range(height):
-            grid_y = y + row
-            if not 0 <= grid_y < grid.height:
-                continue
-            color_row = None if colors is None else colors[row]
-            for col in range(width):
-                grid_x = x + col
-                if not 0 <= grid_x < grid.width:
-                    continue
-                color = None if color_row is None else color_row[col]
-                cells.append((grid_x, grid_y, chars[row][col], color))
-        grid.set_many_unchecked(cells)
+        grid.blit_rows(x, y, chars, colors)
 
     @staticmethod
     def from_xpm_string(

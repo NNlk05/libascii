@@ -12,6 +12,25 @@ from .shapes.shape import Shape
 
 
 class Game:
+    __slots__ = (
+        "width",
+        "height",
+        "title",
+        "default_bg",
+        "default_fg",
+        "filler",
+        "_fps",
+        "font_size",
+        "grid",
+        "_show_debug",
+        "_last_mouse_coords",
+        "_running",
+        "started",
+        "renderer",
+        "_bindings",
+        "_action_map",
+    )
+
     def __init__(
         self,
         width: int = 80,
@@ -129,7 +148,7 @@ class Game:
             f"FPS={self._fps} Grid="
             f"{self.grid.width}x{self.grid.height} Mouse={mouse_str}"
         )
-        self.text(0, self.height - 1, message)
+        self.grid.set_text(0, self.height - 1, message)
 
     def on_frame(self, callback: Callable[[], None]) -> None:
         self._bindings.on_frame(callback)
@@ -171,23 +190,19 @@ class Game:
         string: str,
         color: Color | None = None,
     ) -> None:
-        self.grid.set_many(
-            [
-                (x + offset, y, char, color)
-                for offset, char in enumerate(string)
-            ]
-        )
+        self.grid.set_text(x, y, string, color)
 
     def refresh(self) -> None:
-        if not self.grid.dirty:
+        grid = self.grid
+        if not grid.dirty:
             return
         if self._show_debug:
             self._write_debug_line()
-        region = self.grid.dirty_region()
+        region = grid.dirty_region()
         if region is None:
             return
-        self.renderer.render(self.grid, region=region)
-        self.grid.mark_clean()
+        self.renderer.render(grid, region=region)
+        grid.mark_clean()
 
     def start(self) -> None:
         if self.started:

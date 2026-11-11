@@ -102,7 +102,7 @@ _XTERM256_PALETTE = _build_xterm256_palette()
 
 _COLOR_RGB_CACHE: dict[str, tuple[int, int, int] | None] = {}
 _XTERM256_CACHE: dict[tuple[int, int, int], int] = {}
-_ESCAPE_CACHE: dict[tuple[str, str], str] = {}
+_ESCAPE_CACHE: dict[tuple[Color | str, str], str] = {}
 
 
 def _nearest_xterm256(r: int, g: int, b: int) -> int:
@@ -131,14 +131,18 @@ def _supports_truecolor(stream: object) -> bool:
 
 
 def _color_escape(
-    color_str: str | None,
+    color: Color | str | None,
     mode: str,
 ) -> str:
-    if color_str is None or color_str == "":
+    if color is None:
         return ""
-    cache_key = (color_str, mode)
+    cache_key = (color, mode)
     if cache_key in _ESCAPE_CACHE:
         return _ESCAPE_CACHE[cache_key]
+    color_str = color.value if isinstance(color, Color) else color
+    if color_str is None or color_str == "":
+        _ESCAPE_CACHE[cache_key] = ""
+        return ""
     rgb = _color_to_rgb(color_str)
     if rgb is None:
         result = ""
@@ -562,13 +566,13 @@ class TerminalRenderer(Renderer, BindingMixin):
             self._render_region(grid, region, mode)
 
     def _render_full(self, grid: Grid, mode: str) -> None:
-        lines: list[str] = []
-        for y in range(grid.height):
-            lines.append(
-                self._row_runs(
-                    grid.content[y], grid.colors[y], 0, grid.width, mode
-                )
-            )
+        content = grid.content
+        colors = grid.colors
+        width = grid.width
+        lines: list[str] = [
+            self._row_runs(content[y], colors[y], 0, width, mode)
+            for y in range(grid.height)
+        ]
         result = "\r\n".join(lines) + "\r\n"
         if mode != "plain":
             if not self._screen_cleared:
@@ -589,12 +593,12 @@ class TerminalRenderer(Renderer, BindingMixin):
         if bottom <= ry or right <= rx:
             return
         parts: list[str] = []
+        content = grid.content
+        colors = grid.colors
         for y in range(ry, bottom):
             parts.append(f"\x1b[{y + 1};{rx + 1}H")
             parts.append(
-                self._row_runs(
-                    grid.content[y], grid.colors[y], rx, right, mode
-                )
+                self._row_runs(content[y], colors[y], rx, right, mode)
             )
         result = "".join(parts)
         if mode != "plain":
@@ -610,29 +614,37 @@ class TerminalRenderer(Renderer, BindingMixin):
         x_end: int,
         mode: str,
     ) -> str:
+        if mode == "plain":
+            return "".join(row_chars[x_start:x_end])
         parts: list[str] = []
         x = x_start
+        color = row_colors[x]
+        escape = _color_escape(color, mode)
         while x < x_end:
-            color = row_colors[x]
-            color_str = str(color) if color is not None else ""
-            escape = _color_escape(color_str, mode)
             end = x + 1
+            next_escape = escape
             while end < x_end:
                 next_color = row_colors[end]
-                next_color_str = (
-                    str(next_color) if next_color is not None else ""
-                )
-                next_escape = _color_escape(next_color_str, mode)
+                if next_color is color:
+                    end += 1
+                    continue
+                next_escape = _color_escape(next_color, mode)
                 if next_escape != escape:
                     break
+                color = next_color
                 end += 1
-            run_chars = "".join(row_chars[x:end])
+            run_chars = (
+                row_chars[x] if end == x + 1 else "".join(row_chars[x:end])
+            )
             if escape:
                 parts.append(escape)
             parts.append(run_chars)
             if escape:
                 parts.append("\x1b[0m")
             x = end
+            if x < x_end:
+                color = row_colors[x]
+                escape = next_escape
         return "".join(parts)
 
     def _flush(self) -> None:

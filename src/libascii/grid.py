@@ -4,6 +4,23 @@ from .color import Color
 
 
 class Grid:
+    __slots__ = (
+        "width",
+        "height",
+        "filler",
+        "_content",
+        "_colors",
+        "_dirty_cells",
+        "_fully_dirty",
+        "_dirty",
+        "_dirty_min_x",
+        "_dirty_min_y",
+        "_dirty_max_x",
+        "_dirty_max_y",
+        "_clean_chars",
+        "_clean_colors",
+    )
+
     def __init__(self, width: int, height: int, filler: str = " ") -> None:
         if width <= 0 or height <= 0:
             msg = "width and height must be positive"
@@ -11,14 +28,21 @@ class Grid:
         self.width = width
         self.height = height
         self.filler = filler
+        self._clean_chars: list[str] = [filler] * width
+        self._clean_colors: list[Color | None] = [None] * width
         self._content: list[list[str]] = [
-            [filler for _ in range(width)] for _ in range(height)
+            list(self._clean_chars) for _ in range(height)
         ]
         self._colors: list[list[Color | None]] = [
-            [None for _ in range(width)] for _ in range(height)
+            list(self._clean_colors) for _ in range(height)
         ]
         self._dirty_cells: set[tuple[int, int]] = set()
         self._fully_dirty: bool = False
+        self._dirty: bool = False
+        self._dirty_min_x: int = 0
+        self._dirty_min_y: int = 0
+        self._dirty_max_x: int = 0
+        self._dirty_max_y: int = 0
 
     @property
     def content(self) -> list[list[str]]:
@@ -30,7 +54,7 @@ class Grid:
 
     @property
     def dirty(self) -> bool:
-        return self._fully_dirty or len(self._dirty_cells) > 0
+        return self._fully_dirty or self._dirty or len(self._dirty_cells) > 0
 
     @property
     def dirty_cells(self) -> frozenset[tuple[int, int]]:
@@ -39,29 +63,60 @@ class Grid:
     def mark_clean(self) -> None:
         self._dirty_cells.clear()
         self._fully_dirty = False
+        self._dirty = False
 
     def mark_cells_clean(self, cells: list[tuple[int, int]]) -> None:
         for cell in cells:
             self._dirty_cells.discard(cell)
+        if not self._dirty_cells:
+            self._dirty = False
+        elif self._dirty:
+            first_x, first_y = next(iter(self._dirty_cells))
+            min_x = max_x = first_x
+            min_y = max_y = first_y
+            for x, y in self._dirty_cells:
+                if x < min_x:
+                    min_x = x
+                if x > max_x:
+                    max_x = x
+                if y < min_y:
+                    min_y = y
+                if y > max_y:
+                    max_y = y
+            self._dirty_min_x = min_x
+            self._dirty_max_x = max_x
+            self._dirty_min_y = min_y
+            self._dirty_max_y = max_y
 
     def dirty_region(self) -> tuple[int, int, int, int] | None:
         if self._fully_dirty:
             return (0, 0, self.width, self.height)
-        if not self._dirty_cells:
+        if not self._dirty and not self._dirty_cells:
             return None
-        first_x, first_y = next(iter(self._dirty_cells))
-        min_x = max_x = first_x
-        min_y = max_y = first_y
-        for x, y in self._dirty_cells:
-            if x < min_x:
-                min_x = x
-            if x > max_x:
-                max_x = x
-            if y < min_y:
-                min_y = y
-            if y > max_y:
-                max_y = y
-        return (min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
+        if not self._dirty and self._dirty_cells:
+            first_x, first_y = next(iter(self._dirty_cells))
+            min_x = max_x = first_x
+            min_y = max_y = first_y
+            for x, y in self._dirty_cells:
+                if x < min_x:
+                    min_x = x
+                if x > max_x:
+                    max_x = x
+                if y < min_y:
+                    min_y = y
+                if y > max_y:
+                    max_y = y
+            self._dirty = True
+            self._dirty_min_x = min_x
+            self._dirty_max_x = max_x
+            self._dirty_min_y = min_y
+            self._dirty_max_y = max_y
+        return (
+            self._dirty_min_x,
+            self._dirty_min_y,
+            self._dirty_max_x - self._dirty_min_x + 1,
+            self._dirty_max_y - self._dirty_min_y + 1,
+        )
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
@@ -85,6 +140,19 @@ class Grid:
         self._content[y][x] = char
         self._colors[y][x] = color
         self._dirty_cells.add((x, y))
+        if not self._dirty:
+            self._dirty = True
+            self._dirty_min_x = self._dirty_max_x = x
+            self._dirty_min_y = self._dirty_max_y = y
+        else:
+            if x < self._dirty_min_x:
+                self._dirty_min_x = x
+            elif x > self._dirty_max_x:
+                self._dirty_max_x = x
+            if y < self._dirty_min_y:
+                self._dirty_min_y = y
+            elif y > self._dirty_max_y:
+                self._dirty_max_y = y
 
     def set_many(
         self, cells: list[tuple[int, int, str, Color | None]]
@@ -93,11 +161,35 @@ class Grid:
         colors = self._colors
         width = self.width
         height = self.height
+        dirty_cells = self._dirty_cells
+        dirty = self._dirty
+        min_x = self._dirty_min_x
+        max_x = self._dirty_max_x
+        min_y = self._dirty_min_y
+        max_y = self._dirty_max_y
         for x, y, char, color in cells:
             if 0 <= x < width and 0 <= y < height:
                 content[y][x] = char
                 colors[y][x] = color
-                self._dirty_cells.add((x, y))
+                dirty_cells.add((x, y))
+                if not dirty:
+                    dirty = True
+                    min_x = max_x = x
+                    min_y = max_y = y
+                else:
+                    if x < min_x:
+                        min_x = x
+                    elif x > max_x:
+                        max_x = x
+                    if y < min_y:
+                        min_y = y
+                    elif y > max_y:
+                        max_y = y
+        self._dirty = dirty
+        self._dirty_min_x = min_x
+        self._dirty_max_x = max_x
+        self._dirty_min_y = min_y
+        self._dirty_max_y = max_y
 
     def set_many_unchecked(
         self, cells: list[tuple[int, int, str, Color | None]]
@@ -105,10 +197,132 @@ class Grid:
         content = self._content
         colors = self._colors
         dirty_cells = self._dirty_cells
+        dirty = self._dirty
+        min_x = self._dirty_min_x
+        max_x = self._dirty_max_x
+        min_y = self._dirty_min_y
+        max_y = self._dirty_max_y
         for x, y, char, color in cells:
             content[y][x] = char
             colors[y][x] = color
             dirty_cells.add((x, y))
+            if not dirty:
+                dirty = True
+                min_x = max_x = x
+                min_y = max_y = y
+            else:
+                if x < min_x:
+                    min_x = x
+                elif x > max_x:
+                    max_x = x
+                if y < min_y:
+                    min_y = y
+                elif y > max_y:
+                    max_y = y
+        self._dirty = dirty
+        self._dirty_min_x = min_x
+        self._dirty_max_x = max_x
+        self._dirty_min_y = min_y
+        self._dirty_max_y = max_y
+
+    def set_text(
+        self,
+        x: int,
+        y: int,
+        text: str,
+        color: Color | None = None,
+    ) -> None:
+        if not (0 <= y < self.height):
+            return
+        width = self.width
+        text_len = len(text)
+        if x >= width or x + text_len <= 0:
+            return
+        x_start = max(0, x)
+        x_end = min(width, x + text_len)
+        sub = text[x_start - x : x_end - x]
+        span = x_end - x_start
+        self._content[y][x_start:x_end] = list(sub)
+        self._colors[y][x_start:x_end] = [color] * span
+        dirty_cells = self._dirty_cells
+        for col in range(x_start, x_end):
+            dirty_cells.add((col, y))
+        x_max = x_end - 1
+        if not self._dirty:
+            self._dirty = True
+            self._dirty_min_x = x_start
+            self._dirty_max_x = x_max
+            self._dirty_min_y = y
+            self._dirty_max_y = y
+        else:
+            if x_start < self._dirty_min_x:
+                self._dirty_min_x = x_start
+            if x_max > self._dirty_max_x:
+                self._dirty_max_x = x_max
+            if y < self._dirty_min_y:
+                self._dirty_min_y = y
+            elif y > self._dirty_max_y:
+                self._dirty_max_y = y
+
+    def blit_rows(
+        self,
+        x: int,
+        y: int,
+        chars: list[list[str]],
+        colors: list[list[Color | None]] | None = None,
+    ) -> None:
+        height = len(chars)
+        if height == 0:
+            return
+        width = len(chars[0])
+        if width == 0:
+            return
+        grid_w = self.width
+        grid_h = self.height
+        if x >= grid_w or x + width <= 0:
+            return
+        if y >= grid_h or y + height <= 0:
+            return
+
+        x_start = max(0, x)
+        x_end = min(grid_w, x + width)
+        span = x_end - x_start
+        col_start = x_start - x
+        col_end = x_end - x
+
+        y_start = max(0, y)
+        y_end = min(grid_h, y + height)
+
+        content = self._content
+        grid_colors = self._colors
+
+        for gy in range(y_start, y_end):
+            row_idx = gy - y
+            content[gy][x_start:x_end] = chars[row_idx][col_start:col_end]
+            if colors is not None and row_idx < len(colors):
+                grid_colors[gy][x_start:x_end] = colors[row_idx][
+                    col_start:col_end
+                ]
+            else:
+                grid_colors[gy][x_start:x_end] = [None] * span
+
+        x_max = x_end - 1
+        y_max = y_end - 1
+        if not self._dirty:
+            self._dirty = True
+            self._dirty_min_x = x_start
+            self._dirty_max_x = x_max
+            self._dirty_min_y = y_start
+            self._dirty_max_y = y_max
+        else:
+            if x_start < self._dirty_min_x:
+                self._dirty_min_x = x_start
+            if x_max > self._dirty_max_x:
+                self._dirty_max_x = x_max
+            if y_start < self._dirty_min_y:
+                self._dirty_min_y = y_start
+            if y_max > self._dirty_max_y:
+                self._dirty_max_y = y_max
 
     def get(self, x: int, y: int) -> tuple[str, Color | None]:
         self._check_bounds(x, y)
@@ -130,10 +344,20 @@ class Grid:
         content = self._content
         colors = self._colors
         width = self.width
-        for y in range(self.height):
-            content[y] = [char] * width
-            colors[y] = [color] * width
+        if char == self.filler and color is None:
+            clean_chars = self._clean_chars
+            clean_colors = self._clean_colors
+            for y in range(self.height):
+                content[y][:] = clean_chars
+                colors[y][:] = clean_colors
+        else:
+            row_chars = [char] * width
+            row_colors = [color] * width
+            for y in range(self.height):
+                content[y][:] = row_chars
+                colors[y][:] = row_colors
         self._fully_dirty = True
+        self._dirty = True
 
     def clear(self) -> None:
         self.fill(self.filler, None)

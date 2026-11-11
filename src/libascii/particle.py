@@ -5,6 +5,19 @@ from .grid import Grid
 
 
 class Particle:
+    __slots__ = (
+        "x",
+        "y",
+        "vx",
+        "vy",
+        "life",
+        "max_life",
+        "char",
+        "color",
+        "fade_chars",
+        "dead",
+    )
+
     def __init__(
         self,
         x: float,
@@ -56,6 +69,8 @@ class Particle:
 
 
 class ParticleSystem:
+    __slots__ = ("particles",)
+
     def __init__(self) -> None:
         self.particles: list[Particle] = []
 
@@ -75,14 +90,46 @@ class ParticleSystem:
         )
 
     def update(self, dt: float) -> None:
+        has_dead = False
         for particle in self.particles:
             particle.update(dt)
-        self.particles = [p for p in self.particles if not p.dead]
+            if particle.dead:
+                has_dead = True
+        if has_dead:
+            self.particles = [p for p in self.particles if not p.dead]
 
     def draw(self, grid: Grid) -> None:
-        cells: list[tuple[int, int, str, Color | None]] = []
+        grid_w = grid.width
+        grid_h = grid.height
+        content = grid._content
+        colors = grid._colors
+        dirty = grid._dirty
+        min_x = grid._dirty_min_x
+        max_x = grid._dirty_max_x
+        min_y = grid._dirty_min_y
+        max_y = grid._dirty_max_y
+
         for particle in self.particles:
-            px, py = particle.position
-            if 0 <= px < grid.width and 0 <= py < grid.height:
-                cells.append((px, py, particle.char, particle.color))
-        grid.set_many_unchecked(cells)
+            px = round(particle.x)
+            py = round(particle.y)
+            if 0 <= px < grid_w and 0 <= py < grid_h:
+                content[py][px] = particle.char
+                colors[py][px] = particle.color
+                if not dirty:
+                    dirty = True
+                    min_x = max_x = px
+                    min_y = max_y = py
+                else:
+                    if px < min_x:
+                        min_x = px
+                    elif px > max_x:
+                        max_x = px
+                    if py < min_y:
+                        min_y = py
+                    elif py > max_y:
+                        max_y = py
+        grid._dirty = dirty
+        grid._dirty_min_x = min_x
+        grid._dirty_max_x = max_x
+        grid._dirty_min_y = min_y
+        grid._dirty_max_y = max_y
