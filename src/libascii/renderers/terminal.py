@@ -415,7 +415,7 @@ class _InputDriver:
         if not first:
             return None
         data = first
-        while True:
+        while len(data) < 17:
             try:
                 ready, _, _ = select.select([fd], [], [], 0.01)
             except (OSError, ValueError):
@@ -423,14 +423,12 @@ class _InputDriver:
             if not ready:
                 break
             try:
-                more = os.read(fd, 1)
+                more = os.read(fd, 17 - len(data))
             except OSError:
                 break
             if not more:
                 break
             data += more
-            if len(data) > 16:
-                break
         return data
 
     def _read_windows(self) -> bytes | None:
