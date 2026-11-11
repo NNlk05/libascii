@@ -1,6 +1,6 @@
 from typing import override
 
-from libascii.color import Color
+from .color import Color
 
 
 class Grid:

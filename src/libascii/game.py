@@ -125,18 +125,11 @@ class Game:
             mouse_str = "None"
         else:
             mouse_str = f"({mouse[0]}, {mouse[1]})"
-        self.text(
-            0,
-            self.height - 1,
-            "FPS="
-            + str(self._fps)
-            + " Grid="
-            + str(self.grid.width)
-            + "x"
-            + str(self.grid.height)
-            + " Mouse="
-            + mouse_str,
+        message = (
+            f"FPS={self._fps} Grid="
+            f"{self.grid.width}x{self.grid.height} Mouse={mouse_str}"
         )
+        self.text(0, self.height - 1, message)
 
     def on_frame(self, callback: Callable[[], None]) -> None:
         self._bindings.on_frame(callback)

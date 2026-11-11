@@ -97,7 +97,6 @@ class TkRenderer(Renderer, BindingMixin):
         self.root.mainloop()
 
     @override
-    @override
     def stop(self) -> None:
         if not self._running:
             return

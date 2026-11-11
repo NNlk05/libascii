@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from libascii.color import Color
-from libascii.grid import Grid
+from ..color import Color
+from ..grid import Grid
 
 
 class Shape(ABC):
@@ -40,7 +40,9 @@ class StyledShape(Shape):
         self.border_right = border_right
         self.border_bottom = border_bottom
 
-    def _border_char(self, x: int, y: int) -> str:
+    def _border_char(
+        self, x: int, y: int, left: int = 0, right: int = 0
+    ) -> str:
         if y == 0 and self.border_top:
             return self.border_top
         if y == self.height - 1 and self.border_bottom:

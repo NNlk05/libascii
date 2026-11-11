@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from libascii.color import Color
-from libascii.grid import Grid
+from .color import Color
+from .grid import Grid
 
 
 def wrap(text: str, width: int) -> list[str]:

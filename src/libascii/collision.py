@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from libascii.grid import Grid
+from .grid import Grid
 
 
 def rect_overlap(
