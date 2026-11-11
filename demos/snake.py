@@ -51,7 +51,7 @@ class SnakeGame:
     def _spawn_food(self) -> None:
         while True:
             candidate = (
-                random.randint(0, self.game.width - 1),
+                random.randint(0, self.game.width - 2),
                 random.randint(0, self.game.height - 1),
             )
             if candidate not in self.snake:
