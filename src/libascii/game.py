@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from types import TracebackType
-from typing import cast
 
 from .color import Color
 from .grid import Grid
 from .input import ActionMap
-from .renderers import BindingMixin, Renderer, TkRenderer
+from .renderers import Renderer, TkRenderer
 from .shapes.shape import Shape
 
 
@@ -27,8 +26,7 @@ class Game:
         "_running",
         "started",
         "renderer",
-        "_bindings",
-        "_action_map",
+        "action_map",
     )
 
     def __init__(
@@ -82,12 +80,11 @@ class Game:
                 font_size,
             )
 
-        self._bindings = cast(BindingMixin, self.renderer)
+        self.action_map = ActionMap()
 
-        self._bindings.on_mouse_down(self._capture_mouse_coords)
-        self._bindings.on_mouse_up(self._capture_mouse_coords)
-
-        self._action_map = ActionMap(self.renderer)
+        self.renderer.on_mouse_down(self._capture_mouse_coords)
+        self.renderer.on_mouse_up(self._capture_mouse_coords)
+        self.renderer.on_frame(self.action_map.tick)
 
     @property
     def fps(self) -> int:
@@ -114,26 +111,26 @@ class Game:
         keybinding: str,
         callback: Callable[[str], None],
     ) -> None:
-        self._bindings.on_key_down(keybinding, callback)
+        self.renderer.on_key_down(keybinding, callback)
 
     def on_key_up(
         self,
         keybinding: str,
         callback: Callable[[str], None],
     ) -> None:
-        self._bindings.on_key_up(keybinding, callback)
+        self.renderer.on_key_up(keybinding, callback)
 
     def on_mouse_down(
         self,
         callback: Callable[[tuple[int, int]], None],
     ) -> None:
-        self._bindings.on_mouse_down(callback)
+        self.renderer.on_mouse_down(callback)
 
     def on_mouse_up(
         self,
         callback: Callable[[tuple[int, int]], None],
     ) -> None:
-        self._bindings.on_mouse_up(callback)
+        self.renderer.on_mouse_up(callback)
 
     def _capture_mouse_coords(self, coord: tuple[int, int]) -> None:
         self._last_mouse_coords = coord
@@ -151,19 +148,28 @@ class Game:
         self.grid.set_text(0, self.height - 1, message)
 
     def on_frame(self, callback: Callable[[], None]) -> None:
-        self._bindings.on_frame(callback)
+        self.renderer.on_frame(callback)
 
     def bind_action(self, name: str, keybinding: str) -> None:
-        self._action_map.bind_action(name, keybinding)
+        self.action_map.bind_action(name, keybinding)
 
-    def action_pressed(self, name: str) -> bool:
-        return self._action_map.is_pressed(name)
+        def down(_: str) -> None:
+            self.action_map.key_down(name)
+
+        def up(_: str) -> None:
+            self.action_map.key_up(name)
+
+        self.renderer.on_key_down(keybinding, down)
+        self.renderer.on_key_up(keybinding, up)
+
+    def action_is_pressed(self, name: str) -> bool:
+        return self.action_map.is_pressed(name)
 
     def action_was_pressed(self, name: str) -> bool:
-        return self._action_map.was_pressed(name)
+        return self.action_map.was_pressed(name)
 
     def action_is_held(self, name: str) -> bool:
-        return self._action_map.is_held(name)
+        return self.action_map.is_held(name)
 
     def draw(self, shape: Shape) -> None:
         shape.draw(self.grid)

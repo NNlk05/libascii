@@ -1,39 +1,58 @@
 from __future__ import annotations
 
-from typing import cast
-
-from .renderers import BindingMixin, Renderer
-
 
 class ActionMap:
-    def __init__(self, renderer: Renderer) -> None:
-        self._renderer = renderer
+    __slots__ = (
+        "_bindings",
+        "_pressed",
+        "_frame",
+        "_pressed_frame",
+        "_closed",
+    )
+
+    def __init__(self) -> None:
         self._bindings: dict[str, str] = {}
         self._pressed: dict[str, bool] = {}
         self._frame = 0
         self._pressed_frame: dict[str, int] = {}
-
-        cast(BindingMixin, renderer).on_frame(self._on_frame)
+        self._closed = False
 
     def bind_action(self, name: str, keybinding: str) -> None:
         self._bindings[name] = keybinding
         self._pressed[name] = False
-        cast(BindingMixin, self._renderer).on_key_down(
-            keybinding, lambda _: self._key_down(name)
-        )
-        cast(BindingMixin, self._renderer).on_key_up(
-            keybinding, lambda _: self._key_up(name)
-        )
 
-    def _key_down(self, name: str) -> None:
+    def unbind_action(self, name: str) -> None:
+        self._bindings.pop(name, None)
+        self._pressed.pop(name, None)
+        self._pressed_frame.pop(name, None)
+
+    def get_keybinding(self, name: str) -> str | None:
+        return self._bindings.get(name)
+
+    def bound_actions(self) -> list[str]:
+        return list(self._bindings)
+
+    def key_down(self, name: str) -> None:
+        if self._closed:
+            return
         self._pressed[name] = True
         self._pressed_frame[name] = self._frame
 
-    def _key_up(self, name: str) -> None:
+    def key_up(self, name: str) -> None:
+        if self._closed:
+            return
         self._pressed[name] = False
 
-    def _on_frame(self) -> None:
+    def tick(self) -> None:
+        if self._closed:
+            return
         self._frame += 1
+
+    def close(self) -> None:
+        self._closed = True
+        self._bindings.clear()
+        self._pressed.clear()
+        self._pressed_frame.clear()
 
     def is_pressed(self, name: str) -> bool:
         return self._pressed.get(name, False)

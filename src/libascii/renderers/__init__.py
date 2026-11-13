@@ -7,37 +7,6 @@ from ..camera import Camera
 from ..grid import Grid
 
 
-class Renderer(ABC):
-    @abstractmethod
-    def start(self) -> None:
-        pass
-
-    @abstractmethod
-    def stop(self) -> None:
-        pass
-
-    @abstractmethod
-    def render(
-        self,
-        grid: Grid,
-        camera: Camera | None = None,
-        region: tuple[int, int, int, int] | None = None,
-    ) -> None:
-        pass
-
-    @abstractmethod
-    def set_title(self, title: str) -> None:
-        pass
-
-    @abstractmethod
-    def set_size(self, width: int, height: int) -> None:
-        pass
-
-    @abstractmethod
-    def set_fps(self, fps: int) -> None:
-        pass
-
-
 class BindingMixin:
     def __init__(self) -> None:
         self._key_down_bindings: list[tuple[str, Callable[[str], None]]] = []
@@ -66,6 +35,37 @@ class BindingMixin:
 
     def on_frame(self, callback: Callable[[], None]) -> None:
         self._frame_bindings.append(callback)
+
+
+class Renderer(BindingMixin, ABC):
+    @abstractmethod
+    def start(self) -> None:
+        pass
+
+    @abstractmethod
+    def stop(self) -> None:
+        pass
+
+    @abstractmethod
+    def render(
+        self,
+        grid: Grid,
+        camera: Camera | None = None,
+        region: tuple[int, int, int, int] | None = None,
+    ) -> None:
+        pass
+
+    @abstractmethod
+    def set_title(self, title: str) -> None:
+        pass
+
+    @abstractmethod
+    def set_size(self, width: int, height: int) -> None:
+        pass
+
+    @abstractmethod
+    def set_fps(self, fps: int) -> None:
+        pass
 
 
 from .headless import HeadlessRenderer  # noqa: E402

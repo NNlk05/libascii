@@ -120,7 +120,7 @@ def test_game_bind_action_and_pressed() -> None:
     renderer = _make_renderer()
     game = Game(width=10, height=8, renderer=renderer)
     game.bind_action("jump", "space")
-    assert game.action_pressed("jump") is False
+    assert game.action_is_pressed("jump") is False
 
 
 def test_game_draw_shape() -> None:

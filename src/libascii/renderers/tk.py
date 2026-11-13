@@ -8,10 +8,10 @@ from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
 from .._utils.keymapping import keybinding_to_events
-from . import BindingMixin, Renderer
+from . import Renderer
 
 
-class TkRenderer(Renderer, BindingMixin):
+class TkRenderer(Renderer):
     def __init__(
         self,
         width: int,
@@ -22,7 +22,7 @@ class TkRenderer(Renderer, BindingMixin):
         fps: int,
         font_size: int = 10,
     ) -> None:
-        BindingMixin.__init__(self)
+        super().__init__()
         self.width = width
         self.height = height
         self.title = title

@@ -6,10 +6,10 @@ from typing import override
 from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
-from . import BindingMixin, Renderer
+from . import Renderer
 
 
-class HeadlessRenderer(Renderer, BindingMixin):
+class HeadlessRenderer(Renderer):
     def __init__(
         self,
         width: int,
@@ -20,7 +20,7 @@ class HeadlessRenderer(Renderer, BindingMixin):
         fps: int,
         font_size: int = 10,
     ) -> None:
-        BindingMixin.__init__(self)
+        super().__init__()
         self.width = width
         self.height = height
         self.title = title

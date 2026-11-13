@@ -7,9 +7,10 @@ import threading
 import time
 import atexit
 from typing import Any, TextIO, override
+from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
-from . import BindingMixin, Renderer
+from . import Renderer
 
 try:
     colorama = importlib.import_module("colorama")
@@ -480,7 +481,7 @@ class _InputDriver:
                 pass
 
 
-class TerminalRenderer(Renderer, BindingMixin):
+class TerminalRenderer(Renderer):
     def __init__(
         self,
         width: int,
@@ -492,7 +493,7 @@ class TerminalRenderer(Renderer, BindingMixin):
         use_color: bool = True,
         stream: TextIO | None = None,
     ) -> None:
-        BindingMixin.__init__(self)
+        super().__init__()
         self.width = width
         self.height = height
         self.title = title
@@ -556,7 +557,7 @@ class TerminalRenderer(Renderer, BindingMixin):
     def render(
         self,
         grid: Grid,
-        camera: object | None = None,
+        camera: Camera | None = None,
         region: tuple[int, int, int, int] | None = None,
     ) -> None:
         mode = self._detect_mode()
