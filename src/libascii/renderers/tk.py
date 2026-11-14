@@ -11,6 +11,9 @@ from .._utils.keymapping import keybinding_to_events
 from . import Renderer
 
 
+_FRAME_INTERVAL_MS = 1000
+
+
 class TkRenderer(Renderer):
     def __init__(
         self,
@@ -97,7 +100,7 @@ class TkRenderer(Renderer):
             for callback in self._frame_bindings:
                 callback()
             assert self.root is not None
-            self.root.after(round(1000 / self._fps), _tick)
+            self.root.after(round(_FRAME_INTERVAL_MS / self._fps), _tick)
 
         assert self.root is not None
         self.root.after(round(1000 / self._fps), _tick)

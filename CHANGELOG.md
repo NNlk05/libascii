@@ -41,6 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace `Grid.dirty_region()` with `Grid.dirty_regions()` returning a list of rectangles. `Game.refresh()` renders each region separately so scattered cells no longer force the whole grid to be redrawn.
 - `CharLib.get_char()` raises `ValueError` (not `KeyError`) for unknown category/name
 - `import libascii` does not import tkinter or simpleaudio (improve load time)
+- `Grid.dirty_region()` replaced with `Grid.dirty_regions()` returning per-row dirty rectangles; `Game.refresh()` renders each separately so scattered cells no longer force the whole grid to be redrawn.
+- `_InputDriver` no longer holds a `TerminalRenderer` reference; frame/key/mouse bindings are now injected.
+- Terminal setup/restore exceptions narrowed. Terminal state restored via `atexit`/`finally`.
+- Terminal `_NAMED_COLORS` bright variants use distinct RGB values instead of duplicating normal colors.
+- `StyledShape._border_char` uses `left`/`right` boundary params. `Triangle` no longer overrides semantics.
+- `Tilemap.tile_grid`/`tileset` encapsulated behind read-only properties.
+- `expand_keybinding`/`keybinding_to_events`: `{a,b}` choices emit separate key combos (not modifiers). Unknown `[modifier]` validated. The combination count is capped at 64.
+- `Game.refresh()` renders the debug line as a separate region instead of folding it into dirty tracking.
+- `sound.py` reduced `cast()` usage.
+- Magic numbers replaced with named constants: `_FRAME_INTERVAL_MS` (tk), `_ELLIPSE_EPSILON` (ellipse), `_MAX_READ_BYTES` (terminal).
 
 ### Fixed
 

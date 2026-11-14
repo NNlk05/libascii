@@ -7,6 +7,8 @@ MODIFIER_MAP = {
 
 MODIFIER_ORDER = ("ctrl", "shift", "alt", "meta")
 
+MAX_COMBINATIONS = 64
+
 
 def expand_keybinding(keybinding: str) -> list[tuple[frozenset[str], str]]:
     combinations: list[tuple[frozenset[str], str]] = []
@@ -18,6 +20,9 @@ def expand_keybinding(keybinding: str) -> list[tuple[frozenset[str], str]]:
         for token in [token.strip() for token in pattern.split("+")]:
             if token.startswith("[") and token.endswith("]"):
                 modifier = token[1:-1]
+                if modifier not in MODIFIER_MAP:
+                    msg = f"Unknown modifier: [{modifier}]"
+                    raise ValueError(msg)
                 expanded: list[tuple[frozenset[str], str | None]] = []
 
                 for modifiers, key in pattern_combos:
@@ -29,7 +34,7 @@ def expand_keybinding(keybinding: str) -> list[tuple[frozenset[str], str]]:
                 expanded: list[tuple[frozenset[str], str | None]] = []
                 for modifiers, key in pattern_combos:
                     for choice in choices:
-                        expanded.append((modifiers | {choice}, key))
+                        expanded.append((modifiers, choice))
                 pattern_combos = expanded
             elif token in MODIFIER_MAP:
                 pattern_combos = [
@@ -44,6 +49,12 @@ def expand_keybinding(keybinding: str) -> list[tuple[frozenset[str], str]]:
         for modifiers, key in pattern_combos:
             if key is not None:
                 combinations.append((modifiers, key))
+        if len(combinations) > MAX_COMBINATIONS:
+            msg = (
+                f"Keybinding expands to {len(combinations)} combinations; "
+                f"maximum is {MAX_COMBINATIONS}"
+            )
+            raise ValueError(msg)
     return combinations
 
 

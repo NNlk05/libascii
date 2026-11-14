@@ -45,8 +45,8 @@ class StyledShape(Shape):
             return self.border_top
         if y == self.height - 1 and self.border_bottom:
             return self.border_bottom
-        if x == 0 and self.border_left:
+        if x == left and self.border_left:
             return self.border_left
-        if x == self.width - 1 and self.border_right:
+        if x == right and self.border_right:
             return self.border_right
         return self.border

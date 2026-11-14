@@ -72,15 +72,3 @@ class Triangle(StyledShape):
 
         if cells:
             grid.set_many_unchecked(cells)
-
-    @override
-    def _border_char(
-        self, x: int, y: int, left: int = 0, right: int = 0
-    ) -> str:
-        if y == self.height - 1 and self.border_bottom:
-            return self.border_bottom
-        if x == left and self.border_left:
-            return self.border_left
-        if x == right and self.border_right:
-            return self.border_right
-        return self.border

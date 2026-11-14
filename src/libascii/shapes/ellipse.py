@@ -7,6 +7,9 @@ from ..grid import Grid
 from .shape import StyledShape
 
 
+_ELLIPSE_EPSILON = 1e-9
+
+
 class Ellipse(StyledShape):
     @override
     def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
@@ -20,8 +23,8 @@ class Ellipse(StyledShape):
         if getattr(self, "_ellipse_cache_key", None) != key:
             cx = (width - 1) / 2
             cy = (height - 1) / 2
-            rx = max((width - 1) / 2, 1e-9)
-            ry = max((height - 1) / 2, 1e-9)
+            rx = max((width - 1) / 2, _ELLIPSE_EPSILON)
+            ry = max((height - 1) / 2, _ELLIPSE_EPSILON)
             rx2 = rx * rx
             ry2 = ry * ry
 

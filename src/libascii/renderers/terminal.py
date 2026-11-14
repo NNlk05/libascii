@@ -6,8 +6,8 @@ import sys
 import threading
 import time
 import atexit
-from typing import Any, TextIO, override
-from collections.abc import Sequence
+from typing import Any, cast, TextIO, override
+from collections.abc import Callable, Sequence
 from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
@@ -30,13 +30,13 @@ _NAMED_COLORS: dict[str, tuple[int, int, int]] = {
     "white": (255, 255, 255),
     "gray": (128, 128, 128),
     "grey": (128, 128, 128),
-    "bright_black": (128, 128, 128),
-    "bright_red": (255, 0, 0),
-    "bright_green": (0, 255, 0),
-    "bright_yellow": (255, 255, 0),
-    "bright_blue": (0, 0, 255),
-    "bright_magenta": (255, 0, 255),
-    "bright_cyan": (0, 255, 255),
+    "bright_black": (85, 85, 85),
+    "bright_red": (255, 85, 85),
+    "bright_green": (85, 255, 85),
+    "bright_yellow": (255, 255, 85),
+    "bright_blue": (85, 85, 255),
+    "bright_magenta": (255, 85, 255),
+    "bright_cyan": (85, 255, 255),
     "bright_white": (255, 255, 255),
 }
 
@@ -263,8 +263,21 @@ def _parse_mouse_sgr(data: bytes) -> tuple[int, int, int, bool] | None:
 
 
 class _InputDriver:
-    def __init__(self, renderer: TerminalRenderer) -> None:
-        self._renderer = renderer
+    def __init__(
+        self,
+        fps: int,
+        frame_bindings: list[Callable[[], None]],
+        key_down_bindings: list[tuple[str, Callable[[str], None]]],
+        key_up_bindings: list[tuple[str, Callable[[str], None]]],
+        mouse_down_bindings: list[Callable[[tuple[int, int]], None]],
+        mouse_up_bindings: list[Callable[[tuple[int, int]], None]],
+    ) -> None:
+        self._fps = fps
+        self._frame_bindings = frame_bindings
+        self._key_down_bindings = key_down_bindings
+        self._key_up_bindings = key_up_bindings
+        self._mouse_down_bindings = mouse_down_bindings
+        self._mouse_up_bindings = mouse_up_bindings
         self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
         self._old_settings: list[int] | None = None
@@ -300,12 +313,13 @@ class _InputDriver:
         fd = sys.stdin.fileno()
         try:
             self._old_settings = list(termios.tcgetattr(fd))
-        except Exception:
+        except termios.error:
             self._old_settings = None
             return
+        atexit.register(self._restore_unix)
         try:
             tty.setraw(fd)
-        except Exception:
+        except termios.error:
             self._old_settings = None
             return
         self._enable_mouse_reporting()
@@ -324,7 +338,7 @@ class _InputDriver:
             if kernel32.GetConsoleMode(handle, ctypes_mod.byref(mode)):
                 mode.value |= 0x0001
                 kernel32.SetConsoleMode(handle, mode)
-        except Exception:
+        except OSError:
             pass
 
     def _restore_terminal(self) -> None:
@@ -340,11 +354,16 @@ class _InputDriver:
         if self._old_settings is not None:
             fd = sys.stdin.fileno()
             try:
-                settings: Any = self._old_settings
-                termios.tcsetattr(fd, termios.TCSADRAIN, settings)
-            except Exception:
+                settings = self._old_settings
+                termios.tcsetattr(
+                    fd,
+                    termios.TCSADRAIN,
+                    cast(Any, settings),
+                )
+            except OSError:
                 pass
-            self._old_settings = None
+            finally:
+                self._old_settings = None
 
     def _restore_windows(self) -> None:
         pass
@@ -356,7 +375,7 @@ class _InputDriver:
         try:
             sys.stdout.write("\x1b[?1000h")
             sys.stdout.flush()
-        except Exception:
+        except OSError:
             pass
 
     def _disable_mouse_reporting(self) -> None:
@@ -366,16 +385,16 @@ class _InputDriver:
         try:
             sys.stdout.write("\x1b[?1000l")
             sys.stdout.flush()
-        except Exception:
+        except OSError:
             pass
 
     def _run(self) -> None:
-        frame_interval = 1.0 / self._renderer._fps
+        frame_interval = 1.0 / self._fps
         last_frame = time.monotonic()
         while not self._stop_event.is_set():
             now = time.monotonic()
             if now - last_frame >= frame_interval:
-                for callback in list(self._renderer._frame_bindings):
+                for callback in list(self._frame_bindings):
                     try:
                         callback()
                     except Exception:
@@ -462,7 +481,7 @@ class _InputDriver:
         return data
 
     def _dispatch_key(self, key_name: str) -> None:
-        bindings = list(self._renderer._key_down_bindings)
+        bindings = list(self._key_down_bindings)
         for binding, callback in bindings:
             if binding == key_name:
                 try:
@@ -474,9 +493,9 @@ class _InputDriver:
         self, button: int, x: int, y: int, pressed: bool
     ) -> None:
         bindings = (
-            list(self._renderer._mouse_down_bindings)
+            list(self._mouse_down_bindings)
             if pressed
-            else list(self._renderer._mouse_up_bindings)
+            else list(self._mouse_up_bindings)
         )
         for callback in bindings:
             try:
@@ -536,7 +555,14 @@ class TerminalRenderer(Renderer):
     def start(self) -> None:
         self._init_colorama()
         self._running = True
-        self._input_driver = _InputDriver(self)
+        self._input_driver = _InputDriver(
+            self._fps,
+            self._frame_bindings,
+            self._key_down_bindings,
+            self._key_up_bindings,
+            self._mouse_down_bindings,
+            self._mouse_up_bindings,
+        )
         self._input_driver.start()
         empty_grid = Grid(self.width, self.height)
         self.render(empty_grid)

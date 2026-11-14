@@ -173,84 +173,25 @@ class Sprite:
     ) -> Sprite:
         lines = [line.rstrip("\r") for line in data.split("\n")]
         index = 0
-
-        def skip_blank() -> None:
-            nonlocal index
-            while index < len(lines) and lines[index].strip() == "":
-                index += 1
-
-        skip_blank()
-        if index >= len(lines):
-            msg = "xpm header is missing"
-            raise ValueError(msg)
-        header = lines[index].split()
-        index += 1
-        if len(header) not in (4, 5):
-            msg = f"xpm header must have 4 or 5 fields, got {len(header)}"
-            raise ValueError(msg)
-        try:
-            width = int(header[0])
-            height = int(header[1])
-            num_colors = int(header[2])
-            num_frames = int(header[3])
-            cpp = int(header[4]) if len(header) > 4 else 1
-        except ValueError:
-            msg = "xpm header fields must be integers"
-            raise ValueError(msg) from None
-        if cpp <= 0:
-            msg = "xpm chars-per-pixel must be positive"
-            raise ValueError(msg)
-
-        skip_blank()
-
-        color_map: dict[str, Color | None] = {}
-        for _ in range(num_colors):
-            if index >= len(lines):
-                msg = "xpm color section is truncated"
-                raise ValueError(msg)
-            parts = lines[index].split(maxsplit=1)
-            index += 1
-            if not parts:
-                msg = "xpm color line is empty"
-                raise ValueError(msg)
-            char_key = parts[0]
-            color_val = parts[1].strip() if len(parts) > 1 else "None"
-            color_map[char_key] = (
-                None if color_val == "None" else Color(color_val)
-            )
-
-        skip_blank()
-
+        (
+            width,
+            height,
+            num_colors,
+            num_frames,
+            cpp,
+            index,
+        ) = _parse_xpm_header(lines, index)
+        color_map, index = _parse_xpm_color_map(lines, index, num_colors)
+        index = _skip_blank_lines(lines, index)
         frames: list[list[list[str]]] = []
         frame_colors: list[list[list[Color | None]]] = []
         for _ in range(num_frames):
-            grid_chars: list[list[str]] = []
-            grid_colors: list[list[Color | None]] = []
-            for _ in range(height):
-                if index >= len(lines):
-                    msg = "xpm frame rows are truncated"
-                    raise ValueError(msg)
-                line = lines[index]
-                index += 1
-                if len(line) < width * cpp:
-                    msg = (
-                        f"xpm row is too short: expected {width * cpp} "
-                        f"chars, got {len(line)}"
-                    )
-                    raise ValueError(msg)
-                row_chars: list[str] = []
-                row_colors: list[Color | None] = []
-                for cell_x in range(width):
-                    start = cell_x * cpp
-                    cell_str = line[start : start + cpp]
-                    row_chars.append(cell_str)
-                    row_colors.append(color_map.get(cell_str, None))
-                grid_chars.append(row_chars)
-                grid_colors.append(row_colors)
+            grid_chars, grid_colors, index = _parse_xpm_frame(
+                lines, index, width, height, cpp, color_map
+            )
             frames.append(grid_chars)
             frame_colors.append(grid_colors)
-            skip_blank()
-
+            index = _skip_blank_lines(lines, index)
         return Sprite(frames, fps=fps, loop=loop, colors=frame_colors)
 
     @staticmethod
@@ -271,35 +212,147 @@ class Sprite:
         width = len(self.frames[0][0]) if height > 0 else 0
         num_frames = len(self.frames)
         cpp = 1
-
-        color_map: dict[str, Color | None] = {}
-        for frame_idx, frame in enumerate(self.frames):
-            frame_colors = (
-                self._colors[frame_idx] if self._colors is not None else None
-            )
-            for row_idx, row in enumerate(frame):
-                for col_idx, char in enumerate(row):
-                    color: Color | None = None
-                    if frame_colors is not None:
-                        color = frame_colors[row_idx][col_idx]
-                    color_map[char] = color
-
+        color_map = _build_xpm_color_map(self)
         num_colors = len(color_map)
 
         lines: list[str] = []
-        lines.append(f"{width} {height} {num_colors} {num_frames} {cpp}")
-        lines.append("")
-
-        for char, color in color_map.items():
-            color_str = "None" if color is None else str(color)
-            lines.append(f"{char} {color_str}")
-
-        lines.append("")
-
-        for frame_idx, frame in enumerate(self.frames):
-            for row in frame:
-                lines.append("".join(row))
-            if frame_idx < num_frames - 1:
-                lines.append("")
-
+        _append_xpm_header(lines, width, height, num_colors, num_frames, cpp)
+        _append_xpm_colors(lines, color_map)
+        _append_xpm_frames(lines, self.frames, num_frames)
         return "\n".join(lines)
+
+
+def _skip_blank_lines(lines: list[str], index: int) -> int:
+    while index < len(lines) and lines[index].strip() == "":
+        index += 1
+    return index
+
+
+def _parse_xpm_header(
+    lines: list[str], index: int
+) -> tuple[int, int, int, int, int, int]:
+    index = _skip_blank_lines(lines, index)
+    if index >= len(lines):
+        msg = "xpm header is missing"
+        raise ValueError(msg)
+    header = lines[index].split()
+    index += 1
+    if len(header) not in (4, 5):
+        msg = f"xpm header must have 4 or 5 fields, got {len(header)}"
+        raise ValueError(msg)
+    try:
+        width = int(header[0])
+        height = int(header[1])
+        num_colors = int(header[2])
+        num_frames = int(header[3])
+        cpp = int(header[4]) if len(header) > 4 else 1
+    except ValueError:
+        msg = "xpm header fields must be integers"
+        raise ValueError(msg) from None
+    if cpp <= 0:
+        msg = "xpm chars-per-pixel must be positive"
+        raise ValueError(msg)
+    return width, height, num_colors, num_frames, cpp, index
+
+
+def _parse_xpm_color_map(
+    lines: list[str], index: int, num_colors: int
+) -> tuple[dict[str, Color | None], int]:
+    index = _skip_blank_lines(lines, index)
+    color_map: dict[str, Color | None] = {}
+    for _ in range(num_colors):
+        if index >= len(lines):
+            msg = "xpm color section is truncated"
+            raise ValueError(msg)
+        parts = lines[index].split(maxsplit=1)
+        index += 1
+        if not parts:
+            msg = "xpm color line is empty"
+            raise ValueError(msg)
+        char_key = parts[0]
+        color_val = parts[1].strip() if len(parts) > 1 else "None"
+        color_map[char_key] = None if color_val == "None" else Color(color_val)
+    return color_map, index
+
+
+def _parse_xpm_frame(
+    lines: list[str],
+    index: int,
+    width: int,
+    height: int,
+    cpp: int,
+    color_map: dict[str, Color | None],
+) -> tuple[list[list[str]], list[list[Color | None]], int]:
+    grid_chars: list[list[str]] = []
+    grid_colors: list[list[Color | None]] = []
+    for _ in range(height):
+        if index >= len(lines):
+            msg = "xpm frame rows are truncated"
+            raise ValueError(msg)
+        line = lines[index]
+        index += 1
+        if len(line) < width * cpp:
+            msg = (
+                f"xpm row is too short: expected {width * cpp} "
+                f"chars, got {len(line)}"
+            )
+            raise ValueError(msg)
+        row_chars: list[str] = []
+        row_colors: list[Color | None] = []
+        for cell_x in range(width):
+            start = cell_x * cpp
+            cell_str = line[start : start + cpp]
+            row_chars.append(cell_str)
+            row_colors.append(color_map.get(cell_str, None))
+        grid_chars.append(row_chars)
+        grid_colors.append(row_colors)
+    return grid_chars, grid_colors, index
+
+
+def _build_xpm_color_map(sprite: Sprite) -> dict[str, Color | None]:
+    color_map: dict[str, Color | None] = {}
+    for frame_idx, frame in enumerate(sprite.frames):
+        frame_colors = (
+            sprite._colors[frame_idx] if sprite._colors is not None else None
+        )
+        for row_idx, row in enumerate(frame):
+            for col_idx, char in enumerate(row):
+                color: Color | None = None
+                if frame_colors is not None:
+                    color = frame_colors[row_idx][col_idx]
+                color_map[char] = color
+    return color_map
+
+
+def _append_xpm_header(
+    lines: list[str],
+    width: int,
+    height: int,
+    num_colors: int,
+    num_frames: int,
+    cpp: int,
+) -> None:
+    lines.append(f"{width} {height} {num_colors} {num_frames} {cpp}")
+    lines.append("")
+
+
+def _append_xpm_colors(
+    lines: list[str],
+    color_map: dict[str, Color | None],
+) -> None:
+    for char, color in color_map.items():
+        color_str = "None" if color is None else str(color)
+        lines.append(f"{char} {color_str}")
+    lines.append("")
+
+
+def _append_xpm_frames(
+    lines: list[str],
+    frames: list[list[list[str]]],
+    num_frames: int,
+) -> None:
+    for frame_idx, frame in enumerate(frames):
+        for row in frame:
+            lines.append("".join(row))
+        if frame_idx < num_frames - 1:
+            lines.append("")

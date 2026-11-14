@@ -10,12 +10,20 @@ class Tilemap:
         tile_grid: list[list[int]],
         tileset: dict[int, tuple[str, Color | None]],
     ) -> None:
-        self.tile_grid = tile_grid
-        self.tileset = tileset
+        self._tile_grid = tile_grid
+        self._tileset = tileset
+
+    @property
+    def tile_grid(self) -> list[list[int]]:
+        return self._tile_grid
+
+    @property
+    def tileset(self) -> dict[int, tuple[str, Color | None]]:
+        return self._tileset
 
     def draw(self, grid: Grid, ox: int, oy: int) -> None:
         cells: list[tuple[int, int, str, Color | None]] = []
-        for ty, row in enumerate(self.tile_grid):
+        for ty, row in enumerate(self._tile_grid):
             grid_y = oy + ty
             if not 0 <= grid_y < grid.height:
                 continue

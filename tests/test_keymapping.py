@@ -36,21 +36,34 @@ def test_expand_keybinding_alternatives_with_modifiers() -> None:
 
 
 def test_expand_keybinding_choice_group() -> None:
-    result = expand_keybinding("{a,b,c}+space")
-    assert (frozenset({"a"}), "space") in result
-    assert (frozenset({"b"}), "space") in result
-    assert (frozenset({"c"}), "space") in result
-    assert len(result) == 3
+    result = expand_keybinding("{a,b,c}")
+    assert result == [
+        (frozenset(), "a"),
+        (frozenset(), "b"),
+        (frozenset(), "c"),
+    ]
 
 
 def test_expand_keybinding_modifier_and_choice() -> None:
     result = expand_keybinding("ctrl+{x,y,z}")
-    assert result == []
+    assert result == [
+        (frozenset({"ctrl"}), "x"),
+        (frozenset({"ctrl"}), "y"),
+        (frozenset({"ctrl"}), "z"),
+    ]
 
 
 def test_expand_keybinding_empty_key() -> None:
     result = expand_keybinding("{a,b}")
-    assert result == []
+    assert result == [(frozenset(), "a"), (frozenset(), "b")]
+
+
+def test_expand_keybinding_unknown_modifier() -> None:
+    try:
+        expand_keybinding("[foo]+space")
+    except ValueError:
+        return
+    raise AssertionError("expected ValueError for unknown modifier")
 
 
 def test_keybinding_to_events_simple() -> None:
