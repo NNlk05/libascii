@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Camera.follow()` centers using `(viewport - 1) // 2` (API-28)
 - `__all__` and `_IMPORT_MAP` are generated from a single source
 - Lazy `__getattr__` caches resolved attributes on the module
+- `Grid._dirty_cells` replaced with a 2D dirty-flag array + counts(`_dirty_flags` and `_dirty_count`), eliminating the overhead of per-cell tuples
 - `CharLib.get_char()` raises `ValueError` (not `KeyError`) for unknown category/name
 - `import libascii` does not import tkinter or simpleaudio (improve load time)
 
