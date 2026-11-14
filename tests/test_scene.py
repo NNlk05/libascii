@@ -1,5 +1,7 @@
 from typing import override
 
+import pytest
+
 from libascii import Scene, SceneManager
 from libascii.grid import Grid
 
@@ -100,13 +102,11 @@ def test_replace_exits_old_and_enters_new_once() -> None:
     assert s2.exited is False
 
 
-def test_replace_on_empty_just_enters() -> None:
+def test_replace_on_empty_raises() -> None:
     sm = SceneManager()
     s1 = MockScene("s1")
-    sm.replace(s1)
-    assert sm.current is s1
-    assert s1.entered is True
-    assert s1.exited is False
+    with pytest.raises(IndexError):
+        sm.replace(s1)
 
 
 def test_update_only_top() -> None:

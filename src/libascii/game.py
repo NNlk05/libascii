@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from types import TracebackType
 
+from .camera import Camera
 from .color import Color
 from .grid import Grid
 from .input import ActionMap
@@ -27,6 +29,7 @@ class Game:
         "started",
         "renderer",
         "action_map",
+        "camera",
     )
 
     def __init__(
@@ -40,6 +43,7 @@ class Game:
         fps: int = 60,
         font_size: int = 10,
         renderer: Renderer | None = None,
+        camera: Camera | None = None,
     ) -> None:
         if fps <= 0:
             msg = "fps must be positive"
@@ -81,6 +85,8 @@ class Game:
             )
 
         self.action_map = ActionMap()
+
+        self.camera = camera
 
         self.renderer.on_mouse_down(self._capture_mouse_coords)
         self.renderer.on_mouse_up(self._capture_mouse_coords)
@@ -207,8 +213,19 @@ class Game:
         region = grid.dirty_region()
         if region is None:
             return
-        self.renderer.render(grid, region=region)
+        self.renderer.render(grid, camera=self.camera, region=region)
         grid.mark_clean()
+
+    def set_camera(self, camera: Camera | None) -> None:
+        self.camera = camera
+
+    def run(self, callback: Callable[[], None]) -> None:
+        self.start()
+        while self._running:
+            callback()
+            self.refresh()
+            time.sleep(1 / self._fps)
+        self.stop()
 
     def start(self) -> None:
         if self.started:

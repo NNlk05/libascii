@@ -155,7 +155,7 @@ def test_rectangle_fill_color_none() -> None:
     grid = Grid(3, 3)
     rect = Rectangle(3, 3, fill=".", fill_color=None)
     rect.draw(grid)
-    assert str(grid.get(1, 1)[1]) == ""
+    assert grid.get(1, 1)[1] is None
 
 
 def test_line_color_none() -> None:

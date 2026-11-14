@@ -32,6 +32,10 @@ class Sprite:
         "_elapsed",
         "_playing",
         "_finished",
+        "_cached_chars",
+        "_cached_flip_h",
+        "_cached_flip_v",
+        "_cached_frame_index",
     )
 
     def __init__(
@@ -84,6 +88,10 @@ class Sprite:
         self._elapsed = 0.0
         self._playing = False
         self._finished = False
+        self._cached_chars = None
+        self._cached_flip_h = self.flip_h
+        self._cached_flip_v = self.flip_v
+        self._cached_frame_index = self._frame_index
 
     @property
     def current_frame(self) -> int:
@@ -132,9 +140,20 @@ class Sprite:
                     break
 
     def _current_chars(self) -> list[list[str]]:
-        return _mirror(
+        if (
+            self._cached_chars is not None
+            and self.flip_h == self._cached_flip_h
+            and self.flip_v == self._cached_flip_v
+            and self._frame_index == self._cached_frame_index
+        ):
+            return self._cached_chars
+        self._cached_chars = _mirror(
             self.frames[self._frame_index], self.flip_h, self.flip_v
         )
+        self._cached_flip_h = self.flip_h
+        self._cached_flip_v = self.flip_v
+        self._cached_frame_index = self._frame_index
+        return self._cached_chars
 
     def _current_colors(self) -> list[list[Color | None]] | None:
         if self._colors is None:
@@ -161,20 +180,39 @@ class Sprite:
                 index += 1
 
         skip_blank()
+        if index >= len(lines):
+            msg = "xpm header is missing"
+            raise ValueError(msg)
         header = lines[index].split()
         index += 1
-        width = int(header[0])
-        height = int(header[1])
-        num_colors = int(header[2])
-        num_frames = int(header[3])
-        cpp = int(header[4]) if len(header) > 4 else 1
+        if len(header) not in (4, 5):
+            msg = f"xpm header must have 4 or 5 fields, got {len(header)}"
+            raise ValueError(msg)
+        try:
+            width = int(header[0])
+            height = int(header[1])
+            num_colors = int(header[2])
+            num_frames = int(header[3])
+            cpp = int(header[4]) if len(header) > 4 else 1
+        except ValueError:
+            msg = "xpm header fields must be integers"
+            raise ValueError(msg) from None
+        if cpp <= 0:
+            msg = "xpm chars-per-pixel must be positive"
+            raise ValueError(msg)
 
         skip_blank()
 
         color_map: dict[str, Color | None] = {}
         for _ in range(num_colors):
+            if index >= len(lines):
+                msg = "xpm color section is truncated"
+                raise ValueError(msg)
             parts = lines[index].split(maxsplit=1)
             index += 1
+            if not parts:
+                msg = "xpm color line is empty"
+                raise ValueError(msg)
             char_key = parts[0]
             color_val = parts[1].strip() if len(parts) > 1 else "None"
             color_map[char_key] = (
@@ -189,8 +227,17 @@ class Sprite:
             grid_chars: list[list[str]] = []
             grid_colors: list[list[Color | None]] = []
             for _ in range(height):
+                if index >= len(lines):
+                    msg = "xpm frame rows are truncated"
+                    raise ValueError(msg)
                 line = lines[index]
                 index += 1
+                if len(line) < width * cpp:
+                    msg = (
+                        f"xpm row is too short: expected {width * cpp} "
+                        f"chars, got {len(line)}"
+                    )
+                    raise ValueError(msg)
                 row_chars: list[str] = []
                 row_colors: list[Color | None] = []
                 for cell_x in range(width):

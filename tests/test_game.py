@@ -130,8 +130,8 @@ def test_game_draw_shape() -> None:
     game = Game(width=5, height=5, renderer=renderer)
     rect = Rectangle(3, 3, fill="#", border="+")
     game.draw(rect)
-    assert game.get(0, 0) == ("+", Color(""))
-    assert game.get(1, 1) == ("#", Color(""))
+    assert game.get(0, 0) == ("+", None)
+    assert game.get(1, 1) == ("#", None)
 
 
 def test_game_set_and_get() -> None:

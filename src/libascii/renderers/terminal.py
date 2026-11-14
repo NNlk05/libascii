@@ -105,6 +105,7 @@ _XTERM256_PALETTE = _build_xterm256_palette()
 _COLOR_RGB_CACHE: dict[str, tuple[int, int, int] | None] = {}
 _XTERM256_CACHE: dict[tuple[int, int, int], int] = {}
 _ESCAPE_CACHE: dict[tuple[Color | str, str], str] = {}
+_MAX_READ_BYTES = 17
 
 
 def _nearest_xterm256(r: int, g: int, b: int) -> int:
@@ -380,7 +381,9 @@ class _InputDriver:
                     except Exception:
                         pass
                 last_frame = now
-            data = self._read_bytes()
+            remaining = frame_interval - (now - last_frame)
+            timeout = max(0.001, min(0.1, remaining))
+            data = self._read_bytes(timeout)
             if data is None or len(data) == 0:
                 continue
             mouse = _parse_mouse_sgr(data)
@@ -397,19 +400,19 @@ class _InputDriver:
             if key_name is not None:
                 self._dispatch_key(key_name)
 
-    def _read_bytes(self) -> bytes | None:
+    def _read_bytes(self, timeout: float) -> bytes | None:
         if os.name == "nt":
             return self._read_windows()
-        return self._read_unix()
+        return self._read_unix(timeout)
 
-    def _read_unix(self) -> bytes | None:
+    def _read_unix(self, timeout: float) -> bytes | None:
         import select
 
         if not sys.stdin.isatty():
             return None
         fd = sys.stdin.fileno()
         try:
-            ready, _, _ = select.select([fd], [], [], 0.1)
+            ready, _, _ = select.select([fd], [], [], timeout)
         except (OSError, ValueError):
             return None
         if not ready:
@@ -421,7 +424,7 @@ class _InputDriver:
         if not first:
             return None
         data = first
-        while len(data) < 17:
+        while len(data) < _MAX_READ_BYTES:
             try:
                 ready, _, _ = select.select([fd], [], [], 0.01)
             except (OSError, ValueError):
@@ -429,7 +432,7 @@ class _InputDriver:
             if not ready:
                 break
             try:
-                more = os.read(fd, 17 - len(data))
+                more = os.read(fd, _MAX_READ_BYTES - len(data))
             except OSError:
                 break
             if not more:
@@ -538,13 +541,6 @@ class TerminalRenderer(Renderer):
         empty_grid = Grid(self.width, self.height)
         self.render(empty_grid)
         self._hide_cursor()
-        if sys.stdin.isatty():
-            thread = self._input_driver._thread
-            if thread is not None:
-                try:
-                    thread.join()
-                finally:
-                    self.stop()
 
     @override
     def stop(self) -> None:
@@ -627,7 +623,7 @@ class TerminalRenderer(Renderer):
             next_escape = escape
             while end < x_end:
                 next_color = row_colors[end]
-                if next_color is color:
+                if next_color == color:
                     end += 1
                     continue
                 next_escape = _color_escape(next_color, mode)

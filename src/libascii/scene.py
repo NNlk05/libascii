@@ -50,11 +50,17 @@ class SceneManager:
         return scene
 
     def replace(self, scene: Scene) -> None:
-        if self._stack:
-            self._stack[-1].exit()
-            self._stack.pop()
+        if not self._stack:
+            msg = "scene stack is empty"
+            raise IndexError(msg)
+        self._stack[-1].exit()
+        self._stack.pop()
         self._stack.append(scene)
         scene.enter()
+
+    def clear(self) -> None:
+        while self._stack:
+            self._stack.pop().exit()
 
     def update(self, dt: float) -> None:
         if self._stack:

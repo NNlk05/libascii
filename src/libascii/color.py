@@ -23,6 +23,8 @@ class Color:
         if not isinstance(hex_str, str) or not hex_str.startswith("#"):
             msg = "hex string must be in format #RRGGBB"
             raise ValueError(msg)
+        if len(hex_str) == 4:
+            hex_str = "#" + "".join(c * 2 for c in hex_str[1:])
         if len(hex_str) != 7:
             msg = "hex string must be in format #RRGGBB"
             raise ValueError(msg)

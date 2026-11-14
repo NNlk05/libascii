@@ -96,15 +96,14 @@ class ParticleSystem:
             if particle.dead:
                 has_dead = True
         if has_dead:
-            self.particles = [p for p in self.particles if not p.dead]
+            self.particles[:] = [p for p in self.particles if not p.dead]
 
     def draw(self, grid: Grid) -> None:
         grid_w = grid.width
         grid_h = grid.height
         cells = []
         for particle in self.particles:
-            px = round(particle.x)
-            py = round(particle.y)
+            px, py = particle.position
             if 0 <= px < grid_w and 0 <= py < grid_h:
                 char, color = grid.get(px, py)
                 if char == particle.char and color == particle.color:

@@ -44,13 +44,13 @@ def test_camera_viewport_equals_world_stays_zero() -> None:
 def test_camera_follow_centers_target() -> None:
     cam = Camera(10, 8, 100, 60)
     cam.follow(5, 4)
-    assert cam.offset == (0, 0)
+    assert cam.offset == (1, 1)
 
 
 def test_camera_follow_target_at_world_edge_clamps() -> None:
     cam = Camera(10, 8, 100, 60)
     cam.follow(95, 55)
-    assert cam.offset == (90, 51)
+    assert cam.offset == (90, 52)
 
 
 def test_camera_follow_negative_target_clamps() -> None:
@@ -62,7 +62,7 @@ def test_camera_follow_negative_target_clamps() -> None:
 def test_camera_visible_rect_reflects_offset() -> None:
     cam = Camera(10, 8, 100, 60)
     cam.follow(95, 55)
-    assert cam.visible_rect == (90, 51, 10, 8)
+    assert cam.visible_rect == (90, 52, 10, 8)
 
 
 def test_camera_visible_rect_initial() -> None:

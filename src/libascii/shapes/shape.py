@@ -6,7 +6,7 @@ from ..grid import Grid
 
 class Shape(ABC):
     @abstractmethod
-    def draw(self, grid: Grid) -> None:
+    def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
         pass
 
 
@@ -31,10 +31,8 @@ class StyledShape(Shape):
         self.height = height
         self.fill = fill
         self.border = border
-        self.fill_color = fill_color if fill_color is not None else Color("")
-        self.border_color = (
-            border_color if border_color is not None else Color("")
-        )
+        self.fill_color = fill_color
+        self.border_color = border_color
         self.border_top = border_top
         self.border_left = border_left
         self.border_right = border_right

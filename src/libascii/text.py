@@ -6,25 +6,32 @@ from .grid import Grid
 
 def wrap(text: str, width: int) -> list[str]:
     if width <= 0:
-        return []
+        msg = f"width must be positive, got {width!r}"
+        raise ValueError(msg)
     if not text:
         return []
     lines: list[str] = []
-    for word in text.split(" "):
-        if not word:
-            continue
-        if not lines:
-            lines.append(word)
-        elif len(lines[-1]) + 1 + len(word) <= width:
-            lines[-1] = lines[-1] + " " + word
+    current: list[str] = []
+    current_len = 0
+    for word in text.split():
+        if not current:
+            current = [word]
+            current_len = len(word)
+        elif current_len + 1 + len(word) <= width:
+            current.append(word)
+            current_len += 1 + len(word)
         else:
-            lines.append(word)
+            lines.append(" ".join(current))
+            current = [word]
+            current_len = len(word)
+    if current:
+        lines.append(" ".join(current))
     return lines
 
 
 def align(line: str, width: int, mode: str = "left") -> str:
     if len(line) >= width:
-        return line
+        return line[:width]
     padding = width - len(line)
     if mode == "left":
         return line + " " * padding
@@ -42,10 +49,12 @@ def draw_text(
     grid: Grid,
     x: int,
     y: int,
-    lines: list[str],
+    lines: str | list[str],
     color: Color | None = None,
     align_mode: str = "left",
 ) -> None:
+    if isinstance(lines, str):
+        lines = lines.split("\n")
     available_width = max(0, grid.width - x)
     cells: list[tuple[int, int, str, Color | None]] = []
     for row, line in enumerate(lines):

@@ -9,37 +9,43 @@ from .shape import StyledShape
 
 class Ellipse(StyledShape):
     @override
-    def draw(self, grid: Grid) -> None:
+    def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
         width = self.width
         height = self.height
         if width == 0 or height == 0:
             return
+        ox, oy = x, y
 
-        cx = (width - 1) / 2
-        cy = (height - 1) / 2
-        rx = max((width - 1) / 2, 1e-9)
-        ry = max((height - 1) / 2, 1e-9)
-        rx2 = rx * rx
-        ry2 = ry * ry
+        key = (width, height)
+        if getattr(self, "_ellipse_cache_key", None) != key:
+            cx = (width - 1) / 2
+            cy = (height - 1) / 2
+            rx = max((width - 1) / 2, 1e-9)
+            ry = max((height - 1) / 2, 1e-9)
+            rx2 = rx * rx
+            ry2 = ry * ry
 
-        intervals: list[tuple[int, int] | None] = []
-        for y in range(height):
-            dy = (y - cy) / ry
-            dy2 = dy * dy
-            if dy2 > 1:
-                intervals.append(None)
-                continue
-            dx_max = rx * sqrt(1.0 - dy2)
-            x_left = ceil(cx - dx_max)
-            x_right = floor(cx + dx_max)
-            if x_left < 0:
-                x_left = 0
-            if x_right >= width:
-                x_right = width - 1
-            if x_left > x_right:
-                intervals.append(None)
-            else:
-                intervals.append((x_left, x_right))
+            intervals: list[tuple[int, int] | None] = []
+            for y in range(height):
+                dy = (y - cy) / ry
+                dy2 = dy * dy
+                if dy2 > 1:
+                    intervals.append(None)
+                    continue
+                dx_max = rx * sqrt(1.0 - dy2)
+                x_left = ceil(cx - dx_max)
+                x_right = floor(cx + dx_max)
+                if x_left < 0:
+                    x_left = 0
+                if x_right >= width:
+                    x_right = width - 1
+                if x_left > x_right:
+                    intervals.append(None)
+                else:
+                    intervals.append((x_left, x_right))
+            self._ellipse_cache_key = key
+            self._ellipse_intervals = intervals
+        intervals = self._ellipse_intervals
 
         fill = self.fill
         fill_color = self.fill_color
@@ -96,7 +102,11 @@ class Ellipse(StyledShape):
                 else:
                     ch = fill
                     c = fill_color
-                cells.append((x, y, ch, c))
+                gx = x + ox
+                gy = y + oy
+                if not (0 <= gx < grid.width and 0 <= gy < grid.height):
+                    continue
+                cells.append((gx, gy, ch, c))
 
         if cells:
             grid.set_many_unchecked(cells)

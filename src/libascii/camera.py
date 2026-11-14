@@ -36,6 +36,6 @@ class Camera:
         self._offset_y = min(max(0, oy), max_y)
 
     def follow(self, target_x: int, target_y: int) -> None:
-        ox = target_x - self.viewport_width // 2
-        oy = target_y - self.viewport_height // 2
+        ox = target_x - (self.viewport_width - 1) // 2
+        oy = target_y - (self.viewport_height - 1) // 2
         self.set_offset(ox, oy)

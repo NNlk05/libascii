@@ -132,7 +132,7 @@ def get_char(category: str, name: str) -> str:
         return CharLib[category][name]
     except KeyError:
         msg = f"character {name!r} not found in category {category!r}"
-        raise KeyError(msg) from None
+        raise ValueError(msg) from None
 
 
 if __name__ == "__main__":

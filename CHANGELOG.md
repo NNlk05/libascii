@@ -9,13 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- A terminal-based render
-
-### Fixed
-- Code quality and maintainability fixes.
+- `Game.run(callback)` pumps frames at `fps` and calls `refresh()` each frame
+- `Game.camera` / `Game.set_camera()`; `Game` accepts `camera: Camera | None` and passes it to `renderer.render`
+- `SceneManager.clear()` exits all scenes and empties the stack 
+- `Shape.draw(grid, x=0, y=0)` and all shapes accept an optional draw offset
+- `draw_text()` accepts a single `str` (split on `"\n"`) in addition to `list[str]`
+- `Color.from_hex()` accepts `#RGB` shorthand (e.g. `#f00`) in addition to `#RRGGBB`
+- A `TerminalRenderer`
+- `ParticleSystem.update()` filters in place instead of reallocing a list.
 
 ### Changed
-- Lots of perf improvements across lots of submodules
+
+- `ParticleSystem.update()` filters dead particles in place
+- `Sprite` caches mirrored frames; invalidates on flip/frame change
+- `Sprite.from_xpm_string()` validates input
+- `Triangle.draw()` batches cells into a single `set_many_unchecked` call
+- `Ellipse.draw()` hoists lookups out of the cell loop and caches intervals
+- `Ellipse`/`Rectangle`/`Line`/`Triangle` apply the `x`/`y` draw offset
+- `StyledShape.fill_color`/`border_color` default to `None` instead of `Color("")`
+- `TerminalRenderer._row_runs` compares colors by value (`==`) not identity (`is`)
+- Terminal input thread `select` timeout is tied to the remaining frame interval
+- `TerminalRenderer.start()` no longer blocks joining the input thread
+- `wrap()` builds lines with a word list + `" ".join()` and uses `str.split()`
+- `align()` truncates lines longer than `width` to exactly `width` columns
+- `wrap("", width)` still returns `[]`; `wrap(text, width)` with `width <= 0` raises `ValueError`
+- `SceneManager.replace()` raises `IndexError` on an empty stack, matching `pop()`
+- `Camera.follow()` centers using `(viewport - 1) // 2` (API-28)
+- `__all__` and `_IMPORT_MAP` are generated from a single source
+- Lazy `__getattr__` caches resolved attributes on the module
+- `CharLib.get_char()` raises `ValueError` (not `KeyError`) for unknown category/name
+- `import libascii` does not import tkinter or simpleaudio (improve load time)
+
+### Fixed
+
+- `TerminalRenderer.start()` no longer blocks indefinitely
 
 ## [0.4.0] - 2026-11-08
 

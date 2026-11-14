@@ -43,19 +43,19 @@ def test_get_char_braille_by_index() -> None:
 def test_get_char_unknown_category_raises() -> None:
     try:
         get_char("UNKNOWN", "BLOCK")
-    except KeyError:
+    except ValueError:
         pass
     else:
-        raise AssertionError("expected KeyError for unknown category")
+        raise AssertionError("expected ValueError for unknown category")
 
 
 def test_get_char_unknown_name_raises() -> None:
     try:
         get_char("MAIN", "DOES_NOT_EXIST")
-    except KeyError:
+    except ValueError:
         pass
     else:
-        raise AssertionError("expected KeyError for unknown name")
+        raise AssertionError("expected ValueError for unknown name")
 
 
 def test_charlib_is_dict() -> None:

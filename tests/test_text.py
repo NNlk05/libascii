@@ -1,6 +1,8 @@
 from libascii import Color, align, draw_text, wrap
 from libascii.grid import Grid
 
+import pytest
+
 
 def test_wrap_simple() -> None:
     assert wrap("hello world", 11) == ["hello world"]
@@ -22,12 +24,14 @@ def test_wrap_empty_text() -> None:
     assert wrap("", 10) == []
 
 
-def test_wrap_zero_width() -> None:
-    assert wrap("hello", 0) == []
+def test_wrap_zero_width_raises() -> None:
+    with pytest.raises(ValueError):
+        wrap("hello", 0)
 
 
-def test_wrap_negative_width() -> None:
-    assert wrap("hello", -1) == []
+def test_wrap_negative_width_raises() -> None:
+    with pytest.raises(ValueError):
+        wrap("hello", -1)
 
 
 def test_align_left() -> None:
@@ -46,8 +50,8 @@ def test_align_center_odd_padding() -> None:
     assert align("ab", 5, "center") == " ab  "
 
 
-def test_align_line_wider_than_width_unchanged() -> None:
-    assert align("hello", 3) == "hello"
+def test_align_line_wider_than_width_truncated() -> None:
+    assert align("hello", 3) == "hel"
 
 
 def test_align_invalid_mode_raises() -> None:

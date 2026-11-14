@@ -242,7 +242,7 @@ def test_terminal_hex_color_truecolor() -> None:
     assert "\x1b[38;2;18;52;86m" in output
 
 
-def test_terminal_not_exposed_at_top_level() -> None:
+def test_terminal_exposed_at_top_level() -> None:
     import libascii
 
-    assert not hasattr(libascii, "TerminalRenderer")
+    assert hasattr(libascii, "TerminalRenderer")

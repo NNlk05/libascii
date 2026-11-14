@@ -23,7 +23,7 @@ class Line(Shape):
         self.color = color if color is not None else Color("")
 
     @override
-    def draw(self, grid: Grid) -> None:
+    def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
         width = grid.width
         height = grid.height
         char = self.char
@@ -40,8 +40,10 @@ class Line(Shape):
         cells: list[tuple[int, int, str, Color | None]] = []
 
         while True:
-            if 0 <= x0 < width and 0 <= y0 < height:
-                cells.append((x0, y0, char, color))
+            gx = x + x0
+            gy = y + y0
+            if 0 <= gx < width and 0 <= gy < height:
+                cells.append((gx, gy, char, color))
             if x0 == x1 and y0 == y1:
                 break
             e2 = 2 * err
