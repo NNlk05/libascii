@@ -14,10 +14,6 @@ class Grid:
         "_dirty_count",
         "_fully_dirty",
         "_dirty",
-        "_dirty_min_x",
-        "_dirty_min_y",
-        "_dirty_max_x",
-        "_dirty_max_y",
         "_clean_chars",
         "_clean_colors",
     )
@@ -43,10 +39,6 @@ class Grid:
         self._dirty_count: int = 0
         self._fully_dirty: bool = False
         self._dirty: bool = False
-        self._dirty_min_x: int = 0
-        self._dirty_min_y: int = 0
-        self._dirty_max_x: int = 0
-        self._dirty_max_y: int = 0
 
     @property
     def content(self) -> tuple[tuple[str, ...], ...]:
@@ -74,10 +66,6 @@ class Grid:
         self._dirty_count = 0
         self._fully_dirty = False
         self._dirty = False
-        self._dirty_min_x = 0
-        self._dirty_min_y = 0
-        self._dirty_max_x = 0
-        self._dirty_max_y = 0
 
     def mark_cells_clean(self, cells: list[tuple[int, int]]) -> None:
         height = self.height
@@ -90,54 +78,27 @@ class Grid:
         if self._dirty_count == 0:
             self._dirty = False
             self._fully_dirty = False
-            self._dirty_min_x = 0
-            self._dirty_min_y = 0
-            self._dirty_max_x = 0
-            self._dirty_max_y = 0
-        elif self._dirty:
-            min_x = max_x = min_y = max_y = 0
-            found = False
-            for y, row in enumerate(self._dirty_flags):
-                for x, flag in enumerate(row):
-                    if not flag:
-                        continue
-                    if not found:
-                        min_x = max_x = x
-                        min_y = max_y = y
-                        found = True
-                    else:
-                        if x < min_x:
-                            min_x = x
-                        if x > max_x:
-                            max_x = x
-                        if y < min_y:
-                            min_y = y
-                        if y > max_y:
-                            max_y = y
-            if found:
-                self._dirty_min_x = min_x
-                self._dirty_max_x = max_x
-                self._dirty_min_y = min_y
-                self._dirty_max_y = max_y
 
     def _expand_dirty(self, x0: int, y0: int, x1: int, y1: int) -> None:
-        if not self._dirty:
-            self._dirty = True
-            self._dirty_min_x = x0
-            self._dirty_max_x = x1
-            self._dirty_min_y = y0
-            self._dirty_max_y = y1
-        else:
-            if x0 < self._dirty_min_x:
-                self._dirty_min_x = x0
-            if x1 > self._dirty_max_x:
-                self._dirty_max_x = x1
-            if y0 < self._dirty_min_y:
-                self._dirty_min_y = y0
-            if y1 > self._dirty_max_y:
-                self._dirty_max_y = y1
+        self._dirty = True
 
-    def dirty_region(self) -> tuple[int, int, int, int] | None:
+    def dirty_regions(self) -> list[tuple[int, int, int, int]]:
+        if self._fully_dirty:
+            return [(0, 0, self.width, self.height)]
+        if self._dirty_count == 0:
+            return []
+        regions: list[tuple[int, int, int, int]] = []
+        for y, row in enumerate(self._dirty_flags):
+            x = 0
+            while x < self.width:
+                if not row[x]:
+                    x += 1
+                    continue
+                x_start = x
+                while x < self.width and row[x]:
+                    x += 1
+                regions.append((x_start, y, x - x_start, 1))
+        return regions
         if self._fully_dirty:
             return (0, 0, self.width, self.height)
         if self._dirty_count == 0:

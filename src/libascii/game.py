@@ -210,10 +210,11 @@ class Game:
             return
         if self._show_debug:
             self._write_debug_line()
-        region = grid.dirty_region()
-        if region is None:
+        regions = grid.dirty_regions()
+        if not regions:
             return
-        self.renderer.render(grid, camera=self.camera, region=region)
+        for region in regions:
+            self.renderer.render(grid, camera=self.camera, region=region)
         grid.mark_clean()
 
     def set_camera(self, camera: Camera | None) -> None:

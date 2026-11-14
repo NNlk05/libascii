@@ -193,7 +193,17 @@ def test_grid_set_text_in_bounds() -> None:
     assert grid.get(6, 2) == ("o", Color("red"))
     assert grid.get(7, 2) == (" ", None)
     assert grid.dirty is True
-    assert grid.dirty_region() == (2, 2, 5, 1)
+    assert grid.dirty_regions() == [(2, 2, 5, 1)]
+
+
+def test_dirty_regions_scattered_cells() -> None:
+    grid = Grid(10, 5)
+    grid.set(0, 0, "A")
+    grid.set(9, 4, "B")
+    regions = grid.dirty_regions()
+    assert len(regions) == 2
+    assert (0, 0, 1, 1) in regions
+    assert (9, 4, 1, 1) in regions
 
 
 def test_grid_set_text_clipped() -> None:
