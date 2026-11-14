@@ -131,7 +131,7 @@ def test_terminal_none_color_no_escape() -> None:
     assert output.count("\x1b[38;5;9m") == 2
 
 
-def test_terminal_start_renders_empty_grid() -> None:
+def test_terminal_start_produces_no_output() -> None:
     stream = FakeStream()
     renderer = TerminalRenderer(
         3,
@@ -145,7 +145,29 @@ def test_terminal_start_renders_empty_grid() -> None:
     )
     renderer.start()
     output = stream.getvalue()
+    assert "\r\n" not in output
+    assert "   " not in output
+    renderer.stop()
+
+
+def test_terminal_render_empty_grid() -> None:
+    stream = FakeStream()
+    renderer = TerminalRenderer(
+        3,
+        2,
+        "test",
+        Color("black"),
+        Color("white"),
+        60,
+        use_color=False,
+        stream=cast(TextIO, stream),
+    )
+    renderer.start()
+    grid = Grid(3, 2)
+    renderer.render(grid)
+    output = stream.getvalue()
     assert "   \r\n   \r\n" in output
+    renderer.stop()
 
 
 def test_terminal_set_title() -> None:

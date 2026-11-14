@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `TerminalRenderer.start()` no longer blocks indefinitely
+- `TerminalRenderer.start()` no longer renders an empty grid  first `refresh()` now draws content.
+- `demos/tetris.py`: `run()` now keeps the program alive with a loop.
 
 ## [0.4.0] - 2026-11-08
 

@@ -564,9 +564,12 @@ class TerminalRenderer(Renderer):
             self._mouse_up_bindings,
         )
         self._input_driver.start()
-        empty_grid = Grid(self.width, self.height)
-        self.render(empty_grid)
         self._hide_cursor()
+        mode = self._detect_mode()
+        if mode != "plain":
+            self.stream.write("\x1b[2J\x1b[H")
+            self.stream.flush()
+            self._screen_cleared = True
 
     @override
     def stop(self) -> None:
