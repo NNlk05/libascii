@@ -99,16 +99,6 @@ class Grid:
                     x += 1
                 regions.append((x_start, y, x - x_start, 1))
         return regions
-        if self._fully_dirty:
-            return (0, 0, self.width, self.height)
-        if self._dirty_count == 0:
-            return None
-        return (
-            self._dirty_min_x,
-            self._dirty_min_y,
-            self._dirty_max_x - self._dirty_min_x + 1,
-            self._dirty_max_y - self._dirty_min_y + 1,
-        )
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
