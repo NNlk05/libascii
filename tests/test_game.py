@@ -149,6 +149,7 @@ def test_game_clear_sets_dirty() -> None:
     game.set(0, 0, "X")
     game.refresh()
     assert game.grid.dirty is False
+    game.set(1, 1, "Y")
     game.clear()
     assert game.grid.dirty is True
 

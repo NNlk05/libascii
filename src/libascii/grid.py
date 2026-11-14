@@ -217,7 +217,11 @@ class Grid:
         color: Color | None = None,
     ) -> None:
         if not (0 <= y < self.height):
-            return
+            msg = (
+                f"coordinates ({x}, {y}) out of bounds for grid "
+                f"{self.width}x{self.height}"
+            )
+            raise IndexError(msg)
         width = self.width
         text_len = len(text)
         if x >= width or x + text_len <= 0:

@@ -34,8 +34,8 @@ def grid_cell_overlap(
         )
     else:
         shape_rect = (
-            0,
-            0,
+            int(getattr(shape_or_rect, "x", 0)),
+            int(getattr(shape_or_rect, "y", 0)),
             int(getattr(shape_or_rect, "width", 0)),
             int(getattr(shape_or_rect, "height", 0)),
         )

@@ -208,8 +208,16 @@ def test_grid_set_text_clipped() -> None:
 
 def test_grid_set_text_out_of_bounds() -> None:
     grid = Grid(5, 5)
-    grid.set_text(0, -1, "abc")
-    grid.set_text(0, 5, "abc")
+    try:
+        grid.set_text(0, -1, "abc")
+        assert False, "Expected IndexError for OOB y"
+    except IndexError:
+        pass
+    try:
+        grid.set_text(0, 5, "abc")
+        assert False, "Expected IndexError for OOB y"
+    except IndexError:
+        pass
     grid.set_text(10, 2, "abc")
     grid.set_text(-10, 2, "abc")
     assert grid.dirty is False
