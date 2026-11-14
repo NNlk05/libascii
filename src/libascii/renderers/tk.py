@@ -38,6 +38,10 @@ class TkRenderer(Renderer):
 
         self._tag_configured: set[str] = set()
 
+        self._row_cache: list[str] = []
+        self._color_cache: list[list[Color | None]] = []
+        self._str_cache: dict[str | None, str] = {}
+
     @override
     def start(self) -> None:
         root = tk.Tk()
@@ -59,6 +63,9 @@ class TkRenderer(Renderer):
         )
         self.area.pack()
         self._tag_configured = set()
+        self._row_cache = []
+        self._color_cache = []
+        self._str_cache = {}
 
         self.area.bind("<Button-1>", self._prevent_selection)
         self.area.bind("<B1-Motion>", self._prevent_selection)
@@ -118,6 +125,22 @@ class TkRenderer(Renderer):
             if camera is None:
                 content = grid.content
                 colors = grid.colors
+                rows = ["".join(row) for row in content]
+                wiped_rows: set[int] = set()
+                if len(self._row_cache) != len(rows):
+                    self.area.delete("1.0", tk.END)
+                    self.area.insert("1.0", "\n".join(rows) + "\n")
+                    self._row_cache = list(rows)
+                    wiped_rows = set(range(len(rows)))
+                else:
+                    for y, row in enumerate(rows):
+                        if self._row_cache[y] != row:
+                            line = f"{y + 1}."
+                            self.area.delete(f"{line}0", f"{line}end")
+                            self.area.insert(f"{line}0", row)
+                            self._row_cache[y] = row
+                            wiped_rows.add(y)
+                self._apply_colors(colors, wiped_rows=wiped_rows)
             else:
                 ox, oy = camera.offset
                 vw = camera.viewport_width
@@ -128,56 +151,109 @@ class TkRenderer(Renderer):
                 colors = [
                     row[ox : ox + vw] for row in grid.colors[oy : oy + vh]
                 ]
-
-            self.area.delete("1.0", tk.END)
-
-            rows = ["".join(row) for row in content]
-            self.area.insert("1.0", "\n".join(rows) + "\n")
-
-            self._apply_colors(colors)
+                self.area.delete("1.0", tk.END)
+                rows = ["".join(row) for row in content]
+                self.area.insert("1.0", "\n".join(rows) + "\n")
+                self._apply_colors(colors, wiped_rows=set(range(len(colors))))
         else:
             self._render_region(grid, region)
+
+    def _color_str(self, color: Color | None) -> str:
+        if color is None:
+            return ""
+        key = color.value
+        if key not in self._str_cache:
+            self._str_cache[key] = str(color)
+        return self._str_cache[key]
 
     def _apply_colors(
         self,
         colors: Sequence[Sequence[Color | None]],
         start_row: int = 0,
         end_row: int | None = None,
+        wiped_rows: set[int] | None = None,
     ) -> None:
         if self.area is None:
             return
-        tag_ranges: dict[str, list[tuple[str, str]]] = {}
         if end_row is None:
             end_row = len(colors)
+        shadow = self._color_cache
+        use_shadow = (
+            len(colors) == self.height
+            and bool(colors)
+            and len(colors[0]) == self.width
+        )
+        if use_shadow and (
+            len(shadow) != self.height
+            or any(len(row) != self.width for row in shadow)
+        ):
+            shadow = [[None] * self.width for _ in range(self.height)]
+            self._color_cache = shadow
+        tag_ranges: dict[str, list[tuple[str, str]]] = {}
         for y in range(start_row, end_row):
             if y >= len(colors):
                 break
             row = colors[y]
             line_prefix = f"{y + 1}."
+            shadow_row = shadow[y] if use_shadow else None
+            row_wiped = wiped_rows is not None and y in wiped_rows
             x = 0
             row_len = len(row)
             while x < row_len:
                 color = row[x]
-                if color is None:
-                    x += 1
-                    continue
-                color_str = str(color)
+                color_str = self._color_str(color)
                 if not color_str:
+                    if shadow_row is not None:
+                        old = shadow_row[x]
+                        if old is not None:
+                            old_str = self._color_str(old)
+                            if old_str:
+                                self.area.tag_remove(
+                                    old_str,
+                                    f"{line_prefix}{x}",
+                                    f"{line_prefix}{x + 1}",
+                                )
+                        shadow_row[x] = color
                     x += 1
                     continue
+                changed = (
+                    shadow_row is None or row_wiped or shadow_row[x] != color
+                )
                 start = x
                 x += 1
-                while (
-                    x < row_len
-                    and row[x] is not None
-                    and str(row[x]) == color_str
-                ):
+                while x < row_len:
+                    next_color = row[x]
+                    next_str = self._color_str(next_color)
+                    if next_str != color_str:
+                        break
+                    next_changed = (
+                        shadow_row is None
+                        or row_wiped
+                        or shadow_row[x] != next_color
+                    )
+                    if next_changed != changed:
+                        break
                     x += 1
                 end = x
-                tag_ranges.setdefault(color_str, []).append(
-                    (f"{line_prefix}{start}", f"{line_prefix}{end}")
-                )
-
+                if changed:
+                    tag_ranges.setdefault(color_str, []).append(
+                        (f"{line_prefix}{start}", f"{line_prefix}{end}")
+                    )
+                    if shadow_row is not None and not row_wiped:
+                        for xx in range(start, end):
+                            old = shadow_row[xx]
+                            if old is not None and old != color:
+                                old_str = self._color_str(old)
+                                if old_str:
+                                    self.area.tag_remove(
+                                        old_str,
+                                        f"{line_prefix}{xx}",
+                                        f"{line_prefix}{xx + 1}",
+                                    )
+                if shadow_row is not None:
+                    for xx in range(start, end):
+                        shadow_row[xx] = row[xx]
+                x = end
         for color_str, ranges in tag_ranges.items():
             if color_str not in self._tag_configured:
                 self.area.tag_config(color_str, foreground=color_str)
@@ -195,18 +271,27 @@ class TkRenderer(Renderer):
         rx, ry, rw, rh = region
         bottom = min(ry + rh, grid.height)
         right = min(rx + rw, grid.width)
+        content = grid.content
+        colors = grid.colors
 
+        wiped_rows: set[int] = set()
         for y in range(ry, bottom):
             line = f"{y + 1}."
-            row_slice = grid.content[y][rx:right]
+            row_slice = content[y][rx:right]
+            row_str = "".join(row_slice)
+            full_row = "".join(content[y])
+            if y < len(self._row_cache) and self._row_cache[y] == full_row:
+                continue
             self.area.delete(f"{line}{rx}", f"{line}{right}")
-            self.area.insert(f"{line}{rx}", "".join(row_slice))
+            self.area.insert(f"{line}{rx}", row_str)
+            while len(self._row_cache) <= y:
+                self._row_cache.append("")
+            self._row_cache[y] = full_row
+            wiped_rows.add(y)
 
-        for tag in self.area.tag_names():
-            self.area.tag_remove(tag, f"{ry + 1}.0", f"{bottom}.end")
-
-        colors = grid.colors
-        self._apply_colors(colors, start_row=ry, end_row=bottom)
+        self._apply_colors(
+            colors, start_row=ry, end_row=bottom, wiped_rows=wiped_rows
+        )
 
     @override
     def set_title(self, title: str) -> None:
@@ -218,6 +303,8 @@ class TkRenderer(Renderer):
     def set_size(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
+        self._row_cache = []
+        self._color_cache = []
         if self.area is not None:
             self.area.config(width=width, height=height)
 
