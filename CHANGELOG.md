@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A terminal-based render
 
+### Fixed
+- Code quality and maintainability fixes.
+
+### Changed
+- Lots of perf improvements across lots of submodules
+
 ## [0.4.0] - 2026-11-08
 
 ### Added
