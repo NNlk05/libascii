@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import tkinter as tk
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import override
 
 from ..camera import Camera
@@ -140,7 +140,7 @@ class TkRenderer(Renderer):
 
     def _apply_colors(
         self,
-        colors: list[list[Color | None]],
+        colors: Sequence[Sequence[Color | None]],
         start_row: int = 0,
         end_row: int | None = None,
     ) -> None:

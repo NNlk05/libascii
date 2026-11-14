@@ -1,5 +1,6 @@
 from typing import override
 
+from ..color import Color
 from ..grid import Grid
 from .shape import StyledShape
 
@@ -23,43 +24,28 @@ class Rectangle(StyledShape):
         last_y = height - 1
         last_x = width - 1
 
-        dirty_cells = grid._dirty_cells
+        cells: list[tuple[int, int, str, Color | None]] = []
 
         if fill:
             for y in range(1, last_y):
-                row = grid.content[y]
-                color_row = grid.colors[y]
                 for x in range(1, last_x):
-                    row[x] = fill
-                    color_row[x] = fill_color
-                    dirty_cells.add((x, y))
+                    cells.append((x, y, fill, fill_color))
 
-        top_row = grid.content[0]
-        top_color_row = grid.colors[0]
         top_char = border_top or border
         for x in range(width):
-            top_row[x] = top_char
-            top_color_row[x] = border_color
-            dirty_cells.add((x, 0))
+            cells.append((x, 0, top_char, border_color))
 
         if height > 1:
-            bottom_row = grid.content[last_y]
-            bottom_color_row = grid.colors[last_y]
             bottom_char = border_bottom or border
             for x in range(width):
-                bottom_row[x] = bottom_char
-                bottom_color_row[x] = border_color
-                dirty_cells.add((x, last_y))
+                cells.append((x, last_y, bottom_char, border_color))
 
         if width > 1:
             left_char = border_left or border
             right_char = border_right or border
             for y in range(1, last_y):
-                row = grid.content[y]
-                color_row = grid.colors[y]
-                row[0] = left_char
-                color_row[0] = border_color
-                row[last_x] = right_char
-                color_row[last_x] = border_color
-                dirty_cells.add((0, y))
-                dirty_cells.add((last_x, y))
+                cells.append((0, y, left_char, border_color))
+                cells.append((last_x, y, right_char, border_color))
+
+        if cells:
+            grid.set_many_unchecked(cells)

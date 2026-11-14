@@ -6,14 +6,14 @@ def test_init_defaults() -> None:
     assert grid.width == 5
     assert grid.height == 3
     assert grid.filler == " "
-    assert grid.content == [[" "] * 5 for _ in range(3)]
-    assert grid.colors == [[None] * 5 for _ in range(3)]
+    assert grid.content == ((" ",) * 5,) * 3
+    assert grid.colors == ((None,) * 5,) * 3
 
 
 def test_init_custom_filler() -> None:
     grid = Grid(2, 2, filler=".")
     assert grid.filler == "."
-    assert grid.content == [[".", "."], [".", "."]]
+    assert grid.content == ((".", "."), (".", "."))
 
 
 def test_set_and_get() -> None:

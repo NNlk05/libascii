@@ -2,6 +2,7 @@ from typing import override
 
 from math import ceil, floor, sqrt
 
+from ..color import Color
 from ..grid import Grid
 from .shape import StyledShape
 
@@ -51,9 +52,7 @@ class Ellipse(StyledShape):
         last_y = height - 1
         last_x = width - 1
 
-        content = grid.content
-        colors = grid.colors
-        dirty_cells = grid._dirty_cells
+        cells: list[tuple[int, int, str, Color | None]] = []
 
         for y in range(height):
             interval = intervals[y]
@@ -93,9 +92,11 @@ class Ellipse(StyledShape):
                         ch = border_right
                     else:
                         ch = border
-                    content[y][x] = ch
-                    colors[y][x] = border_color
+                    c = border_color
                 else:
-                    content[y][x] = fill
-                    colors[y][x] = fill_color
-                dirty_cells.add((x, y))
+                    ch = fill
+                    c = fill_color
+                cells.append((x, y, ch, c))
+
+        if cells:
+            grid.set_many_unchecked(cells)

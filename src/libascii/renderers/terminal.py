@@ -7,6 +7,7 @@ import threading
 import time
 import atexit
 from typing import Any, TextIO, override
+from collections.abc import Sequence
 from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
@@ -609,8 +610,8 @@ class TerminalRenderer(Renderer):
 
     def _row_runs(
         self,
-        row_chars: list[str],
-        row_colors: list[Color | None],
+        row_chars: Sequence[str],
+        row_colors: Sequence[Color | None],
         x_start: int,
         x_end: int,
         mode: str,

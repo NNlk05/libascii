@@ -24,11 +24,10 @@ class Line(Shape):
 
     @override
     def draw(self, grid: Grid) -> None:
-        content = grid.content
-        colors = grid.colors
         width = grid.width
         height = grid.height
-        dirty_cells = grid._dirty_cells
+        char = self.char
+        color = self.color
 
         x0, y0 = self.x1, self.y1
         x1, y1 = self.x2, self.y2
@@ -37,14 +36,12 @@ class Line(Shape):
         sx = 1 if x0 < x1 else -1
         sy = 1 if y0 < y1 else -1
         err = dx - dy
-        char = self.char
-        color = self.color
+
+        cells: list[tuple[int, int, str, Color | None]] = []
 
         while True:
             if 0 <= x0 < width and 0 <= y0 < height:
-                content[y0][x0] = char
-                colors[y0][x0] = color
-                dirty_cells.add((x0, y0))
+                cells.append((x0, y0, char, color))
             if x0 == x1 and y0 == y1:
                 break
             e2 = 2 * err
@@ -54,3 +51,6 @@ class Line(Shape):
             if e2 < dx:
                 err += dx
                 y0 += sy
+
+        if cells:
+            grid.set_many_unchecked(cells)
