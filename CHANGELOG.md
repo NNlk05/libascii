@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Grid.content`/`Grid.colors` return `tuple(tuple(...))` views instead of raw lists, stopping external mutation bypassing dirty tracking.
 - `Grid.mark_cells_clean()` no longer iterates all dirty cells to recompute a bounding box. bbox fields are removed entirely.
 - `CharLib.get_char()` raises `ValueError` (not `KeyError`) for unknown category/name
-- `import libascii` does not import tkinter or simpleaudio (improve load time)
+- `import libascii` does not import tkinter or playsound3
 - `Grid.dirty_region()` replaced with `Grid.dirty_regions()` returning per-row dirty rectangles; `Game.refresh()` renders each separately so scattered cells no longer force the whole grid to be redrawn.
 - `_InputDriver` no longer holds a `TerminalRenderer` reference; frame/key/mouse bindings are now injected.
 - Terminal setup/restore exceptions narrowed. Terminal state restored via `atexit`/`finally`.

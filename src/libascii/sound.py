@@ -4,49 +4,48 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
-    import simpleaudio as _sa_typing
+    from typing import Protocol
 
-    PlayObject = _sa_typing.PlayObject
-    WaveObject = _sa_typing.WaveObject
+    class _PlayObject(Protocol):
+        def stop(self) -> None: ...
+
+        def is_alive(self) -> bool: ...
+
+        def wait(self) -> None: ...
+
+    PlayObject = _PlayObject
 else:
     PlayObject = object
-    WaveObject = object
 
 
-sa: object | None = None
+ps: object | None = None
 
 
-def _import_simpleaudio() -> object:
-    global sa
-    if sa is not None:
-        return sa
+def _import_playsound3() -> object:
+    global ps
+    if ps is not None:
+        return ps
     try:
-        import simpleaudio as _sa_module
+        import playsound3 as _ps_module
     except ImportError as exc:
         msg = (
-            "simpleaudio is required for Sound. Install it with "
-            "`uv add --group audio simpleaudio` or `pip install simpleaudio`."
+            "playsound3 is required for Sound. Install it with "
+            "`uv add --group audio playsound3` or `pip install playsound3`."
         )
         raise ImportError(msg) from exc
-    sa = _sa_module
-    return _sa_module
+    ps = _ps_module
+    return _ps_module
 
 
 class Sound:
     def __init__(self, path: str | Path) -> None:
-        sa_module = _import_simpleaudio()
-        try:
-            self.wave_object = cast(
-                WaveObject,
-                getattr(sa_module, "WaveObject").from_wave_file(str(path)),
-            )
-        except (FileNotFoundError, OSError, ValueError) as exc:
-            msg = f"could not load sound from {path!r}: {exc}"
-            raise ValueError(msg) from exc
+        self.path = str(path)
 
     def play(self) -> PlayObject:
-        sa_module = _import_simpleaudio()
-        return cast(PlayObject, self.wave_object.play())
+        ps_module = _import_playsound3()
+        return cast(
+            PlayObject, getattr(ps_module, "playsound")(self.path, block=False)
+        )
 
     def stop(self, play_object: PlayObject) -> None:
         if play_object is None:
@@ -58,10 +57,10 @@ class Sound:
         if play_object is None:
             msg = "play_object must not be None"
             raise ValueError(msg)
-        return cast(bool, play_object.is_playing())
+        return play_object.is_alive()
 
     def wait_done(self, play_object: PlayObject) -> None:
         if play_object is None:
             msg = "play_object must not be None"
             raise ValueError(msg)
-        play_object.wait_done()
+        play_object.wait()
