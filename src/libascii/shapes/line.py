@@ -20,7 +20,7 @@ class Line(Shape):
         self.x2 = x2
         self.y2 = y2
         self.char = char
-        self.color = color if color is not None else Color("")
+        self.color = color
 
     @override
     def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:

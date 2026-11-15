@@ -8,7 +8,7 @@ from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
 from .._utils.keymapping import keybinding_to_events
-from . import Renderer
+from .._renderers.base import Renderer
 
 
 _FRAME_INTERVAL_MS = 1000
@@ -104,7 +104,6 @@ class TkRenderer(Renderer):
 
         assert self.root is not None
         self.root.after(round(1000 / self._fps), _tick)
-        self.root.mainloop()
 
     @override
     def stop(self) -> None:
@@ -113,6 +112,11 @@ class TkRenderer(Renderer):
         self._running = False
         if self.root is not None:
             self.root.quit()
+
+    @override
+    def update(self) -> None:
+        if self.root is not None:
+            self.root.update_idletasks()
 
     @override
     def render(

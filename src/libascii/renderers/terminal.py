@@ -11,7 +11,8 @@ from collections.abc import Callable, Sequence
 from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
-from . import Renderer
+from .._utils.keymapping import expand_keybinding
+from .._renderers.base import Renderer
 
 try:
     colorama = importlib.import_module("colorama")
@@ -484,10 +485,7 @@ class _InputDriver:
         bindings = list(self._key_down_bindings)
         for binding, callback in bindings:
             if binding == key_name:
-                try:
-                    callback(key_name)
-                except Exception:
-                    pass
+                callback(key_name)
 
     def _dispatch_mouse(
         self, button: int, x: int, y: int, pressed: bool
@@ -498,10 +496,7 @@ class _InputDriver:
             else list(self._mouse_up_bindings)
         )
         for callback in bindings:
-            try:
-                callback((x, y))
-            except Exception:
-                pass
+            callback((x, y))
 
 
 class TerminalRenderer(Renderer):
@@ -579,6 +574,18 @@ class TerminalRenderer(Renderer):
             self._input_driver.stop()
             self._input_driver = None
 
+    def on_key_down(
+        self, keybinding: str, callback: Callable[[str], None]
+    ) -> None:
+        for _modifiers, key in expand_keybinding(keybinding):
+            self._key_down_bindings.append((key, callback))
+
+    def on_key_up(
+        self, keybinding: str, callback: Callable[[str], None]
+    ) -> None:
+        for _modifiers, key in expand_keybinding(keybinding):
+            self._key_up_bindings.append((key, callback))
+
     @override
     def render(
         self,
@@ -588,17 +595,28 @@ class TerminalRenderer(Renderer):
     ) -> None:
         mode = self._detect_mode()
         if region is None:
-            self._render_full(grid, mode)
+            self._render_full(grid, camera, mode)
         else:
             self._render_region(grid, region, mode)
 
-    def _render_full(self, grid: Grid, mode: str) -> None:
+    def _render_full(
+        self, grid: Grid, camera: Camera | None, mode: str
+    ) -> None:
         content = grid.content
         colors = grid.colors
         width = grid.width
+        height = grid.height
+        if camera is not None:
+            ox, oy = camera.offset
+            vw = camera.viewport_width
+            vh = camera.viewport_height
+            content = [row[ox : ox + vw] for row in content[oy : oy + vh]]
+            colors = [row[ox : ox + vw] for row in colors[oy : oy + vh]]
+            width = vw
+            height = vh
         lines: list[str] = [
             self._row_runs(content[y], colors[y], 0, width, mode)
-            for y in range(grid.height)
+            for y in range(height)
         ]
         result = "\r\n".join(lines) + "\r\n"
         if mode != "plain":
@@ -714,3 +732,7 @@ class TerminalRenderer(Renderer):
             msg = "fps must be positive"
             raise ValueError(msg)
         self._fps = fps
+
+    def update(self) -> None:
+        """No-op: input is driven by the background _InputDriver thread."""
+        return None

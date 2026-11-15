@@ -8,7 +8,7 @@ from .camera import Camera
 from .color import Color
 from .grid import Grid
 from .input import ActionMap
-from .renderers import Renderer, TkRenderer
+from .renderers import Renderer
 from .shapes.shape import Shape
 
 
@@ -74,6 +74,8 @@ class Game:
         if renderer is not None:
             self.renderer = renderer
         else:
+            from .renderers.tk import TkRenderer
+
             self.renderer = TkRenderer(
                 width,
                 height,
@@ -177,8 +179,8 @@ class Game:
     def action_is_held(self, name: str) -> bool:
         return self.action_map.is_held(name)
 
-    def draw(self, shape: Shape) -> None:
-        shape.draw(self.grid)
+    def draw(self, shape: Shape, x: int = 0, y: int = 0) -> None:
+        shape.draw(self.grid, x, y)
 
     def set(
         self,
@@ -210,6 +212,7 @@ class Game:
             return
         regions = grid.dirty_regions()
         if not regions:
+            grid.mark_clean()
             return
         for region in regions:
             self.renderer.render(grid, camera=self.camera, region=region)
@@ -231,6 +234,7 @@ class Game:
         while self._running:
             callback()
             self.refresh()
+            self.renderer.update()
             time.sleep(1 / self._fps)
         self.stop()
 

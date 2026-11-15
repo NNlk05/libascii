@@ -107,7 +107,11 @@ def test_draw_text_negative_x_clips() -> None:
 
 def test_draw_text_out_of_bounds_y_noop() -> None:
     grid = Grid(3, 3)
-    draw_text(grid, 0, 5, ["hello"])
+    try:
+        draw_text(grid, 0, 5, ["hello"])
+        assert False, "Expected IndexError for OOB y"
+    except IndexError:
+        pass
     for y in range(3):
         for x in range(3):
             assert grid.get(x, y) == (" ", None)

@@ -23,9 +23,11 @@ if TYPE_CHECKING:
     from .sprite import Sprite
     from .text import align, draw_text, wrap
     from .tilemap import Tilemap
+    from ._renderers.base import Renderer
     from .renderers.terminal import TerminalRenderer
 
 _IMPORT_MAP_ENTRIES = [
+    ("Renderer", ".renderers", "Renderer"),
     ("Camera", ".camera", "Camera"),
     ("Color", ".color", "Color"),
     ("Grid", ".grid", "Grid"),

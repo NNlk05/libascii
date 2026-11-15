@@ -6,7 +6,7 @@ from typing import override
 from ..camera import Camera
 from ..color import Color
 from ..grid import Grid
-from . import Renderer
+from .._renderers.base import Renderer
 
 
 class HeadlessRenderer(Renderer):
@@ -65,6 +65,12 @@ class HeadlessRenderer(Renderer):
             msg = "fps must be positive"
             raise ValueError(msg)
         self._fps = fps
+
+    def update(self) -> None:
+        if not self._running:
+            return
+        for callback in self._frame_bindings:
+            callback()
 
     def tick(self) -> None:
         if not self._running:

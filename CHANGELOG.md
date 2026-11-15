@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Color.from_hex()` accepts `#RGB` shorthand (e.g. `#f00`) in addition to `#RRGGBB`
 - A `TerminalRenderer`
 - `ParticleSystem.update()` filters in place instead of reallocing a list.
+- `Game.run(callback)` pumps frames at `fps` and calls `refresh()` each frame
+- `Game.camera` / `Game.set_camera()`; `Game` accepts `camera: Camera | None` and passes it to `renderer.render`
+- `SceneManager.clear()` exits all scenes and empties the stack 
+- `Shape.draw(grid, x=0, y=0)` and all shapes accept an optional draw offset
+- `draw_text()` accepts a single `str` (split on `"\n"`) in addition to `list[str]`
+- `Color.from_hex()` accepts `#RGB` shorthand (e.g. `#f00`) in addition to `#RRGGBB`
+- A `TerminalRenderer`
+- `ParticleSystem.update()` filters in place instead of reallocing a list.
+- `Renderer.update()` non-blocking frame pump on `Renderer` ABC
 
 ### Changed
 
@@ -52,11 +61,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Game.refresh()` renders the debug line as a separate region instead of folding it into dirty tracking.
 - `sound.py` reduced `cast()` usage.
 - Magic numbers replaced with named constants: `_FRAME_INTERVAL_MS` (tk), `_ELLIPSE_EPSILON` (ellipse), `_MAX_READ_BYTES` (terminal).
+- `TkRenderer.start()` no longer blocks on `root.mainloop()`; returns immediately after scheduling `_tick` via `root.after()`
+- `Game.run()` drives the frame loop calling `renderer.update()` each frame; previously unreachable with the default `TkRenderer`
+- `Game.start()`/`stop()` are non-blocking; `with Game(...) as game:` no longer blocks with `TkRenderer`
+- `Renderer`/`BindingMixin` moved to `src/libascii/_renderers/base.py`; `renderers/__init__.py` lazy-loads concrete renderers via `__getattr__` so `import libascii.renderers` does not import `tkinter`
+- `TkRenderer` imported lazily inside `Game.__init__` only when no renderer is provided
+- `Grid._expand_dirty(x0, y0, x1, y1)` now tracks a dirty bounding box instead of being a no-op
+- `Grid.mark_clean()` resets dirty flags in-place instead of reallocating the `width × height` 2D list each frame
+- `Grid.dirty_regions()` returns a single merged bounding-box region instead of scanning the whole grid and emitting one-row regions
+- `Grid.fill()` resets dirty flags in-place and `_dirty_count = 0` before marking fully dirty
+- `Grid.mark_cells_clean()` resets `_fully_dirty` and bounding box when dirty count reaches zero
+- `Game.refresh()` calls `grid.mark_clean()` when `dirty_regions()` returns empty but the grid is dirty, preventing a stuck-dirty state
+- `set_text()` raises `IndexError` for out-of-bounds `x` as well as `y`, matching `set`/`get` (previously clipped `x` silently)
+- `__setitem__()` accepts `(x, y, char, color)` tuples matching `set_many()` (previously `(char, color)`)
+- `Line.color` defaults to `None` instead of `Color("")`, matching other shapes
+- Fixed `Rectangle.draw()` so that the border-character selection is handled by `StyledShape._border_char()`
+- `TerminalRenderer.render()` applies `camera` offset/viewport in `_render_full()`, matching `TkRenderer`
+- `TerminalRenderer.on_key_down()`/`on_key_up()` expand keybindings via `expand_keybinding()` so everything work identically across renderers
+- `TerminalRenderer._dispatch_key()`/`_dispatch_mouse()` no longer swallow exceptions (as per the Zen of Python)
+- `draw_text()` raises `IndexError` for out-of-bounds `y`, to match `set_text()`
 
 ### Fixed
 
+- `Game.run()` loop unreachable with default `TkRenderer` (blocked on `mainloop()`)
+- Stuck-dirty state when `dirty_regions()` returned `[]` while `grid.dirty` was `True`
+- Import-light guarantee: `import libascii` no longer imports `tkinter` or `playsound3`
 - `TerminalRenderer.start()` no longer blocks indefinitely
-- `TerminalRenderer.start()` no longer renders an empty grid  first `refresh()` now draws content.
+- `TerminalRenderer.start()` no longer renders an empty grid.
 - `demos/tetris.py`: `run()` now keeps the program alive with a loop.
 
 ## [0.4.0] - 2026-11-08

@@ -55,13 +55,19 @@ def draw_text(
 ) -> None:
     if isinstance(lines, str):
         lines = lines.split("\n")
-    available_width = max(0, grid.width - x)
+    if not (0 <= y < grid.height):
+        msg = (
+            f"coordinates ({x}, {y}) out of bounds for grid "
+            f"{grid.width}x{grid.height}"
+        )
+        raise IndexError(msg)
     cells: list[tuple[int, int, str, Color | None]] = []
     for row, line in enumerate(lines):
-        aligned = align(line, available_width, align_mode)
         gy = y + row
         if not 0 <= gy < grid.height:
             continue
+        available_width = max(0, grid.width - x)
+        aligned = align(line, available_width, align_mode)
         for col, ch in enumerate(aligned):
             gx = x + col
             if 0 <= gx < grid.width:

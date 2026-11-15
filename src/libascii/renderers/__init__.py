@@ -1,73 +1,29 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
-from ..camera import Camera
-from ..grid import Grid
+from .._renderers.base import BindingMixin, Renderer
 
+__all__ = ["BindingMixin", "Renderer"]
 
-class BindingMixin:
-    def __init__(self) -> None:
-        self._key_down_bindings: list[tuple[str, Callable[[str], None]]] = []
-        self._key_up_bindings: list[tuple[str, Callable[[str], None]]] = []
-        self._mouse_down_bindings: list[Callable[[tuple[int, int]], None]] = []
-        self._mouse_up_bindings: list[Callable[[tuple[int, int]], None]] = []
-        self._frame_bindings: list[Callable[[], None]] = []
-
-    def on_key_down(
-        self, keybinding: str, callback: Callable[[str], None]
-    ) -> None:
-        self._key_down_bindings.append((keybinding, callback))
-
-    def on_key_up(
-        self, keybinding: str, callback: Callable[[str], None]
-    ) -> None:
-        self._key_up_bindings.append((keybinding, callback))
-
-    def on_mouse_down(
-        self, callback: Callable[[tuple[int, int]], None]
-    ) -> None:
-        self._mouse_down_bindings.append(callback)
-
-    def on_mouse_up(self, callback: Callable[[tuple[int, int]], None]) -> None:
-        self._mouse_up_bindings.append(callback)
-
-    def on_frame(self, callback: Callable[[], None]) -> None:
-        self._frame_bindings.append(callback)
+if TYPE_CHECKING:
+    from .headless import HeadlessRenderer  # noqa: F401
+    from .terminal import TerminalRenderer  # noqa: F401
+    from .tk import TkRenderer  # noqa: F401
 
 
-class Renderer(BindingMixin, ABC):
-    @abstractmethod
-    def start(self) -> None:
-        pass
+def __getattr__(name: str) -> object:
+    if name == "HeadlessRenderer":
+        from .headless import HeadlessRenderer
 
-    @abstractmethod
-    def stop(self) -> None:
-        pass
+        return HeadlessRenderer
+    if name == "TerminalRenderer":
+        from .terminal import TerminalRenderer
 
-    @abstractmethod
-    def render(
-        self,
-        grid: Grid,
-        camera: Camera | None = None,
-        region: tuple[int, int, int, int] | None = None,
-    ) -> None:
-        pass
+        return TerminalRenderer
+    if name == "TkRenderer":
+        from .tk import TkRenderer
 
-    @abstractmethod
-    def set_title(self, title: str) -> None:
-        pass
-
-    @abstractmethod
-    def set_size(self, width: int, height: int) -> None:
-        pass
-
-    @abstractmethod
-    def set_fps(self, fps: int) -> None:
-        pass
-
-
-from .headless import HeadlessRenderer  # noqa: E402
-from .terminal import TerminalRenderer  # noqa: E402
-from .tk import TkRenderer  # noqa: E402
+        return TkRenderer
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

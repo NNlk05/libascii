@@ -162,4 +162,4 @@ def test_line_color_none() -> None:
     grid = Grid(5, 5)
     line = Line(0, 0, 4, 4, char="*", color=None)
     line.draw(grid)
-    assert str(grid.get(0, 0)[1]) == ""
+    assert grid.get(0, 0)[1] is None

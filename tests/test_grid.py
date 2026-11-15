@@ -77,7 +77,7 @@ def test_clear() -> None:
 
 def test_getitem_setitem() -> None:
     grid = Grid(3, 3)
-    grid[1, 1] = ("X", Color("green"))
+    grid[1, 1] = (1, 1, "X", Color("green"))
     assert grid[1, 1] == ("X", Color("green"))
 
 
@@ -201,16 +201,16 @@ def test_dirty_regions_scattered_cells() -> None:
     grid.set(0, 0, "A")
     grid.set(9, 4, "B")
     regions = grid.dirty_regions()
-    assert len(regions) == 2
-    assert (0, 0, 1, 1) in regions
-    assert (9, 4, 1, 1) in regions
+    assert regions == [(0, 0, 10, 5)]
 
 
 def test_grid_set_text_clipped() -> None:
     grid = Grid(10, 5)
-    grid.set_text(-2, 1, "test")
-    assert grid.get(0, 1) == ("s", None)
-    assert grid.get(1, 1) == ("t", None)
+    try:
+        grid.set_text(-2, 1, "test")
+        assert False, "Expected IndexError for OOB x"
+    except IndexError:
+        pass
     grid.set_text(8, 3, "world")
     assert grid.get(8, 3) == ("w", None)
     assert grid.get(9, 3) == ("o", None)
@@ -228,6 +228,14 @@ def test_grid_set_text_out_of_bounds() -> None:
         assert False, "Expected IndexError for OOB y"
     except IndexError:
         pass
-    grid.set_text(10, 2, "abc")
-    grid.set_text(-10, 2, "abc")
+    try:
+        grid.set_text(10, 2, "abc")
+        assert False, "Expected IndexError for OOB x"
+    except IndexError:
+        pass
+    try:
+        grid.set_text(-10, 2, "abc")
+        assert False, "Expected IndexError for OOB x"
+    except IndexError:
+        pass
     assert grid.dirty is False
