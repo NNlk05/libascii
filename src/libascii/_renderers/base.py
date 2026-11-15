@@ -68,5 +68,4 @@ class Renderer(BindingMixin, ABC):
         pass
 
     def update(self) -> None:
-        """Non-blocking frame pump. Default no-op."""
         return None
