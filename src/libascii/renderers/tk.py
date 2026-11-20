@@ -136,20 +136,19 @@ class TkRenderer(Renderer):
                 rows = ["".join(row) for row in content]
                 wiped_rows: set[int] = set()
                 if len(self._row_cache) != len(rows):
-                    if len(self._row_cache) < len(rows):
-                        self._row_cache.extend(
-                            [""] * (len(rows) - len(self._row_cache))
-                        )
-                    else:
-                        self._row_cache = self._row_cache[: len(rows)]
-                for y, row in enumerate(rows):
-                    if self._row_cache[y] == row:
-                        continue
-                    line = f"{y + 1}."
-                    self.area.delete(f"{line}0", f"{line}end")
-                    self.area.insert(f"{line}0", row)
-                    self._row_cache[y] = row
-                    wiped_rows.add(y)
+                    self.area.delete("1.0", tk.END)
+                    self.area.insert("1.0", "\n".join(rows) + "\n")
+                    self._row_cache = list(rows)
+                    wiped_rows = set(range(len(rows)))
+                else:
+                    for y, row in enumerate(rows):
+                        if self._row_cache[y] == row:
+                            continue
+                        line = f"{y + 1}."
+                        self.area.delete(f"{line}0", f"{line}end")
+                        self.area.insert(f"{line}0", row)
+                        self._row_cache[y] = row
+                        wiped_rows.add(y)
                 self._apply_colors(
                     colors,
                     wiped_rows=wiped_rows,

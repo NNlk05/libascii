@@ -385,7 +385,22 @@ class Grid:
         _x, _y, char, color = value
         self.set(_x, _y, char, color)
 
-    def fill(self, char: str = "", color: Color | None = None) -> None:
+    def _is_uniform(self, char: str, color: Color | None) -> bool:
+        content = self._content
+        colors = self._colors
+        for y in range(self.height):
+            row = content[y]
+            row_colors = colors[y]
+            for x in range(self.width):
+                if row[x] != char or row_colors[x] != color:
+                    return False
+        return True
+
+    def fill(
+        self, char: str = "", color: Color | None = None, force: bool = False
+    ) -> None:
+        if not force and self._is_uniform(char, color):
+            return
         content = self._content
         colors = self._colors
         width = self.width

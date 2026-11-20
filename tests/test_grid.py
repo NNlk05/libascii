@@ -239,3 +239,30 @@ def test_grid_set_text_out_of_bounds() -> None:
     except IndexError:
         pass
     assert grid.dirty is False
+
+
+def test_fill_noop_already_uniform() -> None:
+    grid = Grid(3, 3)
+    grid.fill("#")
+    grid.mark_clean()
+    assert grid.dirty is False
+    grid.fill("#")
+    assert grid.dirty is False
+
+
+def test_fill_force_marks_dirty() -> None:
+    grid = Grid(3, 3)
+    grid.fill("#")
+    grid.mark_clean()
+    assert grid.dirty is False
+    grid.fill("#", force=True)
+    assert grid.dirty is True
+
+
+def test_clear_noop_already_blank() -> None:
+    grid = Grid(3, 3, filler=".")
+    grid.clear()
+    grid.mark_clean()
+    assert grid.dirty is False
+    grid.clear()
+    assert grid.dirty is False

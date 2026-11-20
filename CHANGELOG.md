@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TerminalRenderer.on_key_down()`/`on_key_up()` expand keybindings via `expand_keybinding()` so everything work identically across renderers
 - `TerminalRenderer._dispatch_key()`/`_dispatch_mouse()` no longer swallow exceptions (as per the Zen of Python)
 - `draw_text()` raises `IndexError` for out-of-bounds `y`, to match `set_text()`
+- `Grid.fill()` skips dirty marking when the grid is the same as the fill char/color. Also added `force` parameter to force a redraw.
 
 ### Fixed
 
@@ -93,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TerminalRenderer.start()` no longer blocks indefinitely
 - `TerminalRenderer.start()` no longer renders an empty grid.
 - `demos/tetris.py`: `run()` now keeps the program alive with a loop.
+- `TkRenderer.render()` rebuilds the widget's line structure (aka newlines between rows) when the row cache length changes, to fix a collapsed one-line widget that made `clear()`/`draw()` frames to pile everything onto the first row.
 
 ## [0.4.0] - 2026-11-08
 
