@@ -201,7 +201,7 @@ def test_dirty_regions_scattered_cells() -> None:
     grid.set(0, 0, "A")
     grid.set(9, 4, "B")
     regions = grid.dirty_regions()
-    assert regions == [(0, 0, 10, 5)]
+    assert regions == [(0, 0, 1, 1), (9, 4, 1, 1)]
 
 
 def test_grid_set_text_clipped() -> None:

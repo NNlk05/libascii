@@ -122,18 +122,59 @@ class Grid:
             return [(0, 0, self.width, self.height)]
         if self._dirty_count == 0:
             return []
-        assert self._dirty_min_x is not None
-        assert self._dirty_min_y is not None
-        assert self._dirty_max_x is not None
-        assert self._dirty_max_y is not None
-        return [
+        row_x: dict[int, list[int]] = {}
+        dirty_flags = self._dirty_flags
+        for x, y in self._dirty_cells_list:
+            if not dirty_flags[y][x]:
+                continue
+            entry = row_x.get(y)
+            if entry is None:
+                row_x[y] = [x, x]
+            else:
+                if x < entry[0]:
+                    entry[0] = x
+                if x > entry[1]:
+                    entry[1] = x
+        if not row_x:
+            return []
+        regions: list[tuple[int, int, int, int]] = []
+        sorted_rows = sorted(row_x)
+        start_y = sorted_rows[0]
+        end_y = sorted_rows[0]
+        min_x, max_x = row_x[start_y]
+        for y in sorted_rows[1:]:
+            r_min_x, r_max_x = row_x[y]
+            if (
+                y == end_y + 1
+                and r_max_x >= min_x - 1
+                and r_min_x <= max_x + 1
+            ):
+                end_y = y
+                if r_min_x < min_x:
+                    min_x = r_min_x
+                if r_max_x > max_x:
+                    max_x = r_max_x
+            else:
+                regions.append(
+                    (
+                        min_x,
+                        start_y,
+                        max_x - min_x + 1,
+                        end_y - start_y + 1,
+                    )
+                )
+                start_y = y
+                end_y = y
+                min_x, max_x = r_min_x, r_max_x
+        regions.append(
             (
-                self._dirty_min_x,
-                self._dirty_min_y,
-                self._dirty_max_x - self._dirty_min_x + 1,
-                self._dirty_max_y - self._dirty_min_y + 1,
+                min_x,
+                start_y,
+                max_x - min_x + 1,
+                end_y - start_y + 1,
             )
-        ]
+        )
+        return regions
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height

@@ -68,10 +68,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TkRenderer` imported lazily inside `Game.__init__` only when no renderer is provided
 - `Grid._expand_dirty(x0, y0, x1, y1)` now tracks a dirty bounding box instead of being a no-op
 - `Grid.mark_clean()` resets dirty flags in-place instead of reallocating the `width × height` 2D list each frame
-- `Grid.dirty_regions()` returns a single merged bounding-box region instead of scanning the whole grid and emitting one-row regions
 - `Grid.fill()` resets dirty flags in-place and `_dirty_count = 0` before marking fully dirty
 - `Grid.mark_clean()` resets only cells dirtied since the last clean instead of scanning the whole grid.
 - `Grid.dirty_cells()` now builds its frozenset from the dirty-cell list (O(n dirty cells)) instead of scanning the whole grid (O(w×h)).
+- `Grid.dirty_regions()` groups dirty rows with overlapping x- into multiple rectangles instead of one, so scattered cells no longer force to redraw the whole grid.
 - `Grid.mark_cells_clean()` resets `_fully_dirty` and bounding box when dirty count reaches zero
 - `Game.refresh()` calls `grid.mark_clean()` when `dirty_regions()` returns empty but the grid is dirty, preventing a stuck-dirty state
 - `set_text()` raises `IndexError` for out-of-bounds `x` as well as `y`, matching `set`/`get` (previously clipped `x` silently)
