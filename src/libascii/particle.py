@@ -90,13 +90,13 @@ class ParticleSystem:
         )
 
     def update(self, dt: float) -> None:
-        has_dead = False
+        write = 0
         for particle in self.particles:
             particle.update(dt)
-            if particle.dead:
-                has_dead = True
-        if has_dead:
-            self.particles[:] = [p for p in self.particles if not p.dead]
+            if not particle.dead:
+                self.particles[write] = particle
+                write += 1
+        del self.particles[write:]
 
     def draw(self, grid: Grid) -> None:
         grid_w = grid.width
