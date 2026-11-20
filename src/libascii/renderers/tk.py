@@ -104,6 +104,7 @@ class TkRenderer(Renderer):
 
         assert self.root is not None
         self.root.after(round(1000 / self._fps), _tick)
+        self.root.mainloop()
 
     @override
     def stop(self) -> None:
