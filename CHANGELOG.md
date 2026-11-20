@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Grid.mark_clean()` resets only cells dirtied since the last clean instead of scanning the whole grid.
 - `Grid.dirty_cells()` now builds its frozenset from the dirty-cell list (O(n dirty cells)) instead of scanning the whole grid (O(w×h)).
 - `Grid.dirty_regions()` groups dirty rows with overlapping x- into multiple rectangles instead of one, so scattered cells no longer force to redraw the whole grid.
+- `TkRenderer._apply_colors()` skips rows that were not wiped or had a color change, avoiding scanning all cells when colors are unchanged.
 - `Grid.mark_cells_clean()` resets `_fully_dirty` and bounding box when dirty count reaches zero
 - `Game.refresh()` calls `grid.mark_clean()` when `dirty_regions()` returns empty but the grid is dirty, preventing a stuck-dirty state
 - `set_text()` raises `IndexError` for out-of-bounds `x` as well as `y`, matching `set`/`get` (previously clipped `x` silently)

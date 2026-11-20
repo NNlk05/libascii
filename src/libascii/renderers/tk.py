@@ -148,7 +148,11 @@ class TkRenderer(Renderer):
                             self.area.insert(f"{line}0", row)
                             self._row_cache[y] = row
                             wiped_rows.add(y)
-                self._apply_colors(colors, wiped_rows=wiped_rows)
+                self._apply_colors(
+                    colors,
+                    wiped_rows=wiped_rows,
+                    dirty_color_rows=grid.dirty_color_rows,
+                )
             else:
                 ox, oy = camera.offset
                 vw = camera.viewport_width
@@ -180,6 +184,7 @@ class TkRenderer(Renderer):
         start_row: int = 0,
         end_row: int | None = None,
         wiped_rows: set[int] | None = None,
+        dirty_color_rows: set[int] | None = None,
     ) -> None:
         if self.area is None:
             return
@@ -205,6 +210,12 @@ class TkRenderer(Renderer):
             line_prefix = f"{y + 1}."
             shadow_row = shadow[y] if use_shadow else None
             row_wiped = wiped_rows is not None and y in wiped_rows
+            if (
+                not row_wiped
+                and dirty_color_rows is not None
+                and y not in dirty_color_rows
+            ):
+                continue
             x = 0
             row_len = len(row)
             while x < row_len:
@@ -298,7 +309,11 @@ class TkRenderer(Renderer):
             wiped_rows.add(y)
 
         self._apply_colors(
-            colors, start_row=ry, end_row=bottom, wiped_rows=wiped_rows
+            colors,
+            start_row=ry,
+            end_row=bottom,
+            wiped_rows=wiped_rows,
+            dirty_color_rows=grid.dirty_color_rows,
         )
 
     @override
