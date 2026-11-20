@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TkRenderer.start()` no longer blocks on `root.mainloop()`; returns immediately after scheduling `_tick` via `root.after()`
 - `Game.run()` drives the frame loop calling `renderer.update()` each frame; previously unreachable with the default `TkRenderer`
 - `Game.start()`/`stop()` are non-blocking; `with Game(...) as game:` no longer blocks with `TkRenderer`
+- `Game.refresh()` is now called automatically each frame by the renderer frame loop, so that `start()`/`stop()`,  along with `with Game(...) as game:` render without needing a manual call to `refresh()`
 - `Renderer`/`BindingMixin` moved to `src/libascii/_renderers/base.py`; `renderers/__init__.py` lazy-loads concrete renderers via `__getattr__` so `import libascii.renderers` does not import `tkinter`
 - `TkRenderer` imported lazily inside `Game.__init__` only when no renderer is provided
 - `Grid._expand_dirty(x0, y0, x1, y1)` now tracks a dirty bounding box instead of being a no-op

@@ -93,6 +93,7 @@ class Game:
         self.renderer.on_mouse_down(self._capture_mouse_coords)
         self.renderer.on_mouse_up(self._capture_mouse_coords)
         self.renderer.on_frame(self.action_map.tick)
+        self.renderer.on_frame(self.refresh)
 
     @property
     def fps(self) -> int:
