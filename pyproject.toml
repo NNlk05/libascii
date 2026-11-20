@@ -41,9 +41,9 @@ dev = [
     "pip-licenses>=5.5.5",
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
-    "ruff>=0.17.5",
-    "uncomment>=3.10.4",
-    "ty>=0.0.104",
+    "ruff>=0.17.6",
+    "uncomment>=3.12.1",
+    "ty>=0.0.107",
 ]
 
 [project.optional-dependencies]
