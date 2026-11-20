@@ -705,9 +705,14 @@ class TerminalRenderer(Renderer):
         self._cursor_hidden = True
         try:
             self.stream.write("\x1b[?25l")
-            self.stream.flush()
-        except Exception:
+        except OSError:
             pass
+        flush = getattr(self.stream, "flush", None)
+        if flush is not None:
+            try:
+                flush()
+            except OSError:
+                pass
 
     def _show_cursor(self) -> None:
         if not self._cursor_hidden:
@@ -715,9 +720,14 @@ class TerminalRenderer(Renderer):
         self._cursor_hidden = False
         try:
             self.stream.write("\x1b[?25h")
-            self.stream.flush()
-        except Exception:
+        except OSError:
             pass
+        flush = getattr(self.stream, "flush", None)
+        if flush is not None:
+            try:
+                flush()
+            except OSError:
+                pass
 
     @override
     def set_title(self, title: str) -> None:

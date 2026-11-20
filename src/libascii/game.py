@@ -171,6 +171,9 @@ class Game:
         self.renderer.on_key_down(keybinding, down)
         self.renderer.on_key_up(keybinding, up)
 
+    def unbind_action(self, name: str) -> None:
+        self.action_map.unbind_action(name)
+
     def action_is_pressed(self, name: str) -> bool:
         return self.action_map.is_pressed(name)
 
@@ -178,6 +181,15 @@ class Game:
         return self.action_map.was_pressed(name)
 
     def action_is_held(self, name: str) -> bool:
+        return self.action_map.is_held(name)
+
+    def is_pressed(self, name: str) -> bool:
+        return self.action_map.is_pressed(name)
+
+    def was_pressed(self, name: str) -> bool:
+        return self.action_map.was_pressed(name)
+
+    def is_held(self, name: str) -> bool:
         return self.action_map.is_held(name)
 
     def draw(self, shape: Shape, x: int = 0, y: int = 0) -> None:

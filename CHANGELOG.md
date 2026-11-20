@@ -86,6 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TerminalRenderer._dispatch_key()`/`_dispatch_mouse()` no longer swallow exceptions (as per the Zen of Python)
 - `draw_text()` raises `IndexError` for out-of-bounds `y`, to match `set_text()`
 - `Grid.fill()` skips dirty marking when the grid is the same as the fill char/color. Also added `force` parameter to force a redraw.
+- `TerminalRenderer._hide_cursor()`/`_show_cursor()` no longer swallow all `Exception`s. Changed to`OSError`.
+- `Game.unbind_action(name)` added to remove a action binding.
+- `Game.is_pressed()`/`was_pressed()`/`is_held()` added to align with `ActionMap`, alongside with `action_is_pressed()`/`action_was_pressed()`/`action_is_held()` as aliases.
 
 ### Fixed
 
