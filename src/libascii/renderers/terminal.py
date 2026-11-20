@@ -574,12 +574,14 @@ class TerminalRenderer(Renderer):
             self._input_driver.stop()
             self._input_driver = None
 
+    @override
     def on_key_down(
         self, keybinding: str, callback: Callable[[str], None]
     ) -> None:
         for _modifiers, key in expand_keybinding(keybinding):
             self._key_down_bindings.append((key, callback))
 
+    @override
     def on_key_up(
         self, keybinding: str, callback: Callable[[str], None]
     ) -> None:
@@ -733,6 +735,6 @@ class TerminalRenderer(Renderer):
             raise ValueError(msg)
         self._fps = fps
 
+    @override
     def update(self) -> None:
-        """No-op: input is driven by the background _InputDriver thread."""
         return None

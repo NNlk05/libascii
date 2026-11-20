@@ -66,6 +66,7 @@ class HeadlessRenderer(Renderer):
             raise ValueError(msg)
         self._fps = fps
 
+    @override
     def update(self) -> None:
         if not self._running:
             return
