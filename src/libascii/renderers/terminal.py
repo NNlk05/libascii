@@ -446,7 +446,7 @@ class _InputDriver:
         data = first
         while len(data) < _MAX_READ_BYTES:
             try:
-                ready, _, _ = select.select([fd], [], [], 0.01)
+                ready, _, _ = select.select([fd], [], [], timeout)
             except (OSError, ValueError):
                 break
             if not ready:
