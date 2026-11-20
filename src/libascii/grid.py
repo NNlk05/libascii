@@ -12,6 +12,7 @@ class Grid:
         "_colors",
         "_dirty_flags",
         "_dirty_count",
+        "_dirty_cells_list",
         "_fully_dirty",
         "_dirty",
         "_dirty_min_x",
@@ -41,6 +42,7 @@ class Grid:
             [False] * width for _ in range(height)
         ]
         self._dirty_count: int = 0
+        self._dirty_cells_list: list[tuple[int, int]] = []
         self._fully_dirty: bool = False
         self._dirty: bool = False
         self._dirty_min_x: int | None = None
@@ -71,9 +73,9 @@ class Grid:
 
     def mark_clean(self) -> None:
         dirty_flags = self._dirty_flags
-        for row in dirty_flags:
-            for i in range(len(row)):
-                row[i] = False
+        for x, y in self._dirty_cells_list:
+            dirty_flags[y][x] = False
+        self._dirty_cells_list.clear()
         self._dirty_count = 0
         self._fully_dirty = False
         self._dirty = False
@@ -159,6 +161,7 @@ class Grid:
         if not self._dirty_flags[y][x]:
             self._dirty_flags[y][x] = True
             self._dirty_count += 1
+            self._dirty_cells_list.append((x, y))
         self._expand_dirty(x, y, x, y)
 
     def set_many(
@@ -178,6 +181,7 @@ class Grid:
                 if not dirty_flags[y][x]:
                     dirty_flags[y][x] = True
                     self._dirty_count += 1
+                    self._dirty_cells_list.append((x, y))
                 if not added:
                     min_x = max_x = x
                     min_y = max_y = y
@@ -208,6 +212,7 @@ class Grid:
             if not dirty_flags[y][x]:
                 dirty_flags[y][x] = True
                 self._dirty_count += 1
+                self._dirty_cells_list.append((x, y))
             if not added:
                 min_x = max_x = x
                 min_y = max_y = y
@@ -259,6 +264,7 @@ class Grid:
             if not dirty_flags[y][col]:
                 dirty_flags[y][col] = True
                 self._dirty_count += 1
+                self._dirty_cells_list.append((col, y))
         self._expand_dirty(x_start, y, x_max, y)
 
     def blit_rows(
@@ -309,6 +315,7 @@ class Grid:
                 if not dirty_flags[gy][gx]:
                     dirty_flags[gy][gx] = True
                     self._dirty_count += 1
+                    self._dirty_cells_list.append((gx, gy))
         self._expand_dirty(x_start, y_start, x_end - 1, y_end - 1)
 
     def get(self, x: int, y: int) -> tuple[str, Color | None]:
@@ -347,6 +354,7 @@ class Grid:
         for row in dirty_flags:
             for i in range(len(row)):
                 row[i] = False
+        self._dirty_cells_list.clear()
         self._dirty_count = 0
         self._dirty_min_x = None
         self._dirty_min_y = None
