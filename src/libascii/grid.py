@@ -64,11 +64,9 @@ class Grid:
 
     @property
     def dirty_cells(self) -> frozenset[tuple[int, int]]:
+        dirty_flags = self._dirty_flags
         return frozenset(
-            (x, y)
-            for y, row in enumerate(self._dirty_flags)
-            for x, flag in enumerate(row)
-            if flag
+            (x, y) for x, y in self._dirty_cells_list if dirty_flags[y][x]
         )
 
     def mark_clean(self) -> None:
