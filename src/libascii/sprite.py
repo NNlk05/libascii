@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+from typing import TypeVar
+
 from .color import Color
 from .grid import Grid
 
 
-def _mirror(
-    chars: list[list[str]],
+T = TypeVar("T")
+
+
+def _mirror[T](
+    rows: list[list[T]],
     flip_h: bool,
     flip_v: bool,
-) -> list[list[str]]:
+) -> list[list[T]]:
     if not flip_h and not flip_v:
-        return chars
-    result = chars
+        return rows
+    result = rows
     if flip_v:
         result = result[::-1]
     if flip_h:
@@ -158,7 +163,9 @@ class Sprite:
     def _current_colors(self) -> list[list[Color | None]] | None:
         if self._colors is None:
             return None
-        return self._colors[self._frame_index]
+        return _mirror(
+            self._colors[self._frame_index], self.flip_h, self.flip_v
+        )
 
     def draw(self, grid: Grid, x: int, y: int) -> None:
         chars = self._current_chars()

@@ -599,7 +599,7 @@ class TerminalRenderer(Renderer):
         if region is None:
             self._render_full(grid, camera, mode)
         else:
-            self._render_region(grid, region, mode)
+            self._render_region(grid, region, mode, camera)
 
     def _render_full(
         self, grid: Grid, camera: Camera | None, mode: str
@@ -632,21 +632,47 @@ class TerminalRenderer(Renderer):
         self._flush()
 
     def _render_region(
-        self, grid: Grid, region: tuple[int, int, int, int], mode: str
+        self,
+        grid: Grid,
+        region: tuple[int, int, int, int],
+        mode: str,
+        camera: Camera | None = None,
     ) -> None:
         rx, ry, rw, rh = region
-        bottom = min(ry + rh, grid.height)
-        right = min(rx + rw, grid.width)
-        if bottom <= ry or right <= rx:
-            return
-        parts: list[str] = []
         content = grid.content
         colors = grid.colors
-        for y in range(ry, bottom):
-            parts.append(f"\x1b[{y + 1};{rx + 1}H")
-            parts.append(
-                self._row_runs(content[y], colors[y], rx, right, mode)
-            )
+        width = grid.width
+        height = grid.height
+        ox = 0
+        oy = 0
+        if camera is not None:
+            ox, oy = camera.offset
+            vw = camera.viewport_width
+            vh = camera.viewport_height
+            left = max(rx, ox)
+            top = max(ry, oy)
+            right = min(rx + rw, ox + vw)
+            bottom = min(ry + rh, oy + vh)
+        else:
+            left = max(rx, 0)
+            top = max(ry, 0)
+            right = min(rx + rw, width)
+            bottom = min(ry + rh, height)
+        if bottom <= top or right <= left:
+            return
+        parts: list[str] = []
+        for y in range(top, bottom):
+            if y < 0 or y >= height:
+                continue
+            gx0 = max(left, 0)
+            gx1 = min(right, width)
+            if gx1 <= gx0:
+                continue
+            if camera is not None:
+                parts.append(f"\x1b[{y - oy + 1};{gx0 - ox + 1}H")
+            else:
+                parts.append(f"\x1b[{y + 1};{gx0 + 1}H")
+            parts.append(self._row_runs(content[y], colors[y], gx0, gx1, mode))
         result = "".join(parts)
         if mode != "plain":
             result += "\x1b[0m"

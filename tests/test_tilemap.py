@@ -28,13 +28,49 @@ def test_tilemap_draw_full() -> None:
     assert grid.get(4, 4) == ("#", Color("gray"))
 
 
-def test_tilemap_missing_tile_id_blank() -> None:
+def test_tilemap_missing_tile_id_passthrough() -> None:
     tile_grid = [[9]]
     tileset = {0: (" ", None)}
     tm = Tilemap(tile_grid, tileset)
     grid = Grid(1, 1)
+    grid.set(0, 0, "#", Color("red"))
+    grid.mark_clean()
     tm.draw(grid, 0, 0)
-    assert grid.get(0, 0) == ("", None)
+    assert grid.get(0, 0) == ("#", Color("red"))
+    assert not grid.dirty
+
+
+def test_tilemap_tile_grid_and_tileset_copied() -> None:
+    tile_grid = [[1, 2], [3, 4]]
+    tileset = {1: ("#", None), 2: (" ", None)}
+    tm = Tilemap(tile_grid, tileset)
+
+    tile_grid[0][0] = 9
+    tileset[1] = ("@", None)
+
+    assert tm.tile_grid == [[1, 2], [3, 4]]
+    assert tm.tileset[1] == ("#", None)
+    assert tm.tileset[2] == (" ", None)
+
+    returned_grid = tm.tile_grid
+    returned_tileset = tm.tileset
+    returned_grid[0][0] = 5
+    returned_tileset[3] = ("$", None)
+
+    assert tm.tile_grid[0][0] == 1
+    assert 3 not in tm.tileset
+
+
+def test_tilemap_unhashable_tile_id_skipped() -> None:
+    tile_grid: list[list[int]] = [[1]]
+    tm = Tilemap(tile_grid, {})
+    tm._tile_grid[0][0] = []  # type: ignore
+    grid = Grid(1, 1)
+    grid.set(0, 0, "#", Color("red"))
+    grid.mark_clean()
+    tm.draw(grid, 0, 0)
+    assert grid.get(0, 0) == ("#", Color("red"))
+    assert not grid.dirty
 
 
 def test_tilemap_draw_with_offset() -> None:

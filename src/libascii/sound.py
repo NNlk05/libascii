@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -40,12 +42,33 @@ def _import_playsound3() -> object:
 class Sound:
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
+        self._active: list[PlayObject] = []
+        self._lock = threading.Lock()
+
+    def _prune(self) -> None:
+        self._active = [obj for obj in self._active if obj.is_alive()]
 
     def play(self) -> PlayObject:
         ps_module = _import_playsound3()
-        return cast(
+        play_object = cast(
             PlayObject, getattr(ps_module, "playsound")(self.path, block=False)
         )
+        with self._lock:
+            self._prune()
+            self._active.append(play_object)
+        return play_object
+
+    def stop_all(self) -> None:
+        with self._lock:
+            for play_object in self._active:
+                try:
+                    play_object.stop()
+                except (OSError, ProcessLookupError):
+                    pass
+            self._active.clear()
+
+    def stop_active(self) -> None:
+        self.stop_all()
 
     def stop(self, play_object: PlayObject) -> None:
         if play_object is None:

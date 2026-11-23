@@ -65,11 +65,6 @@ CharLib: dict[str, dict[str | int, str]] = {
         "ROUNDED_BOTTOM_RIGHT_TURN": "╮",
         "ROUNDED_TOP_LEFT_TURN": "╰",
         "ROUNDED_TOP_RIGHT_TURN": "╯",
-        "ROUNDED_T_UP": "┴",
-        "ROUNDED_T_DOWN": "┬",
-        "ROUNDED_T_LEFT": "┤",
-        "ROUNDED_T_RIGHT": "├",
-        "ROUNDED_CROSS": "┼",
     },
     "PIPE_BLOCKS": {
         "FULL_BLOCK": "█",

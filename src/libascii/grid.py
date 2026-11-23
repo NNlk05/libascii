@@ -66,6 +66,12 @@ class Grid:
 
     @property
     def dirty_cells(self) -> frozenset[tuple[int, int]]:
+        if self._fully_dirty:
+            width = self.width
+            height = self.height
+            return frozenset(
+                (x, y) for x in range(width) for y in range(height)
+            )
         dirty_flags = self._dirty_flags
         return frozenset(
             (x, y) for x, y in self._dirty_cells_list if dirty_flags[y][x]
@@ -88,6 +94,11 @@ class Grid:
         self._dirty_min_y = None
         self._dirty_max_x = None
         self._dirty_max_y = None
+
+    def mark_all_dirty(self) -> None:
+        self._fully_dirty = True
+        self._dirty = True
+        self._dirty_count = self.width * self.height
 
     def mark_cells_clean(self, cells: list[tuple[int, int]]) -> None:
         height = self.height
@@ -360,13 +371,13 @@ class Grid:
 
         for gy in range(y_start, y_end):
             row_idx = gy - y
-            content[gy][x_start:x_end] = chars[row_idx][col_start:col_end]
+            row_chars = chars[row_idx][col_start:col_end]
+            row_chars = (row_chars + [self.filler] * span)[:span]
+            content[gy][x_start:x_end] = row_chars
             if colors is not None and row_idx < len(colors):
-                grid_colors[gy][x_start:x_end] = colors[row_idx][
-                    col_start:col_end
-                ]
-            else:
-                grid_colors[gy][x_start:x_end] = [None] * span
+                row_colors = colors[row_idx][col_start:col_end]
+                row_colors = (row_colors + [None] * span)[:span]
+                grid_colors[gy][x_start:x_end] = row_colors
             self._dirty_color_rows.add(gy)
 
         dirty_flags = self._dirty_flags

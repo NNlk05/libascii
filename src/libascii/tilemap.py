@@ -10,19 +10,20 @@ class Tilemap:
         tile_grid: list[list[int]],
         tileset: dict[int, tuple[str, Color | None]],
     ) -> None:
-        self._tile_grid = tile_grid
-        self._tileset = tileset
+        self._tile_grid = [list(row) for row in tile_grid]
+        self._tileset = dict(tileset)
 
     @property
     def tile_grid(self) -> list[list[int]]:
-        return self._tile_grid
+        return [list(row) for row in self._tile_grid]
 
     @property
     def tileset(self) -> dict[int, tuple[str, Color | None]]:
-        return self._tileset
+        return dict(self._tileset)
 
     def draw(self, grid: Grid, ox: int, oy: int) -> None:
         cells: list[tuple[int, int, str, Color | None]] = []
+        tileset = self._tileset
         for ty, row in enumerate(self._tile_grid):
             grid_y = oy + ty
             if not 0 <= grid_y < grid.height:
@@ -31,11 +32,12 @@ class Tilemap:
                 grid_x = ox + tx
                 if not 0 <= grid_x < grid.width:
                     continue
-                entry = self.tileset.get(tile_id)
+                try:
+                    entry = tileset.get(tile_id)
+                except TypeError:
+                    entry = None
                 if entry is None:
-                    char = ""
-                    color = None
-                else:
-                    char, color = entry
+                    continue
+                char, color = entry
                 cells.append((grid_x, grid_y, char, color))
         grid.set_many_unchecked(cells)

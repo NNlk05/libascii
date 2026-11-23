@@ -13,7 +13,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `HeadlessRenderer.tick()`: now calls `update()` so `refresh` (and other frame bindings!) dispatch exactly once per frame instead of twice. removed an incorrect `@override`.
 - `SceneManager.push()`/`pop()`/`replace()`/`clear()` now calls `enter()`/`exit()` before mutating the stack, so a failed `enter()`/`exit()` leaves the stack structurally correct instead of a half-entered or lost scene.
 - `ActionMap`: all mutation (`key_down`/`key_up`/`tick`/`bind_action`/`unbind_action`/`close`) and read (`is_pressed`/`was_pressed`/`is_held`/etc) paths are now guarded by a `threading.Lock`, eliminating wrong `is_held()` and unreliable `was_pressed()` under access from multiple threads.
-- `Grid.set_many_unchecked()`: validates every cell's bounds upfront and raises `IndexError` before writing, so negative coordinates no longer silently corrupt adjacent cells becuase Python negative indexing.
+- `Grid.set_many_unchecked()`: validates every cell's bounds upfront and raises `IndexError` before writing, so negative coordinates no longer silently corrupt adjacent cells because Python negative indexing.
+- `SceneManager.push()`/`pop()`/`replace()`/`clear()` now calls `enter()`/`exit()` before mutating the stack, so a failed `enter()`/`exit()` leaves the stack structurally correct instead of a half-entered or lost scene.
+- `ActionMap`: all mutation (`key_down`/`key_up`/`tick`/`bind_action`/`unbind_action`/`close`) and read (`is_pressed`/`was_pressed`/`is_held`/etc) paths are now guarded by a `threading.Lock`, eliminating wrong `is_held()` and unreliable `was_pressed()` under access from multiple threads.
+- `Game.run()`: the frame loop is exception-safe (`try/finally` calls `self.stop()`); `refresh` is dispatched exactly once per frame by the renderer frame loop; `TkRenderer.start()` is non-blocking (schedules `_tick` via `root.after()`) and `TkRenderer.update()` pumps `root.update()`; `run()` loop order is `renderer.update()` → `callback()` → `sleep()`.
+- `HeadlessRenderer.tick()`: now calls `update()` so `refresh` (and other frame bindings!) dispatch exactly once per frame instead of twice; removed an incorrect `@override`.
+- `BindingMixin`: binding registration now deduplicates identical entries and gained `off_key_down`/`off_key_up`/`off_mouse_down`/`off_mouse_up`/`off_frame` detachment methods.
+- `Sprite._current_colors()`: mirrors `flip_h`/`flip_v` identically to `_current_chars()`, so flipped colored sprites keep color/char alignment.
+- `Grid.blit_rows()`: colorless sprites (`colors=None`) no longer erase underlying cell colors; ragged `chars`/`colors` rows are padded/truncated to the span instead of raising `ValueError` or corrupting grid width.
+- `Ellipse`: even-dimension extreme rows are snapped to a single cell so the ellipse spans full height (e.g. `Ellipse(6,6)` draws all 6 rows).
+- `Rectangle`: fill is drawn over the full extent first and the border pass skips cells whose resolved border char is empty, so `fill="#"` renders a solid block and an empty border leaves fill showing on edges.
+- `TerminalRenderer._render_region()`: applies the camera offset/viewport (clips to the viewport) so an active camera renders the correct area.
+- `Grid`: added public `mark_all_dirty()`; `Game.set_camera()` calls it so camera moves force a repaint.
+- `input.py`/`base.py`/`game.py`: `key_down()` records `_pressed_frame` only on the press transition (auto-repeat no longer breaks `was_pressed()`/`is_held()`); `_just_pressed` pulse catches intra-frame taps; pressed state is keyed by `(action, key)`; `key_down`/`key_up` ignore unbound names; `unbind_action()` detaches renderer bindings.
+- `Grid.dirty_cells()`: returns all cells when `_fully_dirty` (set by `fill()`), restoring the invariant that `dirty` implies `dirty_cells()` is non-empty.
+- `Tilemap`: deep-copies `tile_grid` and shallow-copies `tileset` on construction; properties return copies; missing tiles are skipped (transparent passthrough); unhashable `tile_id`s are treated as missing.
+- `Sound`: tracks active play_objects and provides `stop_all()`/`stop_active()` (errors from already-exited playback are swallowed), so in-flight sounds can be stopped and play_objects no longer leak.
+- `chars`: removed the 5 duplicate/misnamed `ROUNDED_T_UP/DOWN/LEFT/RIGHT`/`ROUNDED_CROSS` entries (they duplicated sharp PIPE_EXTENDED glyphs and LEFT/RIGHT were swapped); genuine `ROUNDED_*_TURN` entries kept.
+- `Game`: owns a `scene_manager` (`SceneManager`) exposed as a public attribute with `push_scene`/`pop_scene`/`replace_scene`/`clear_scenes` delegation, driven after the user callback in `run()`.
 ## [0.5.0] - 2026-11-20
 
 ### Added

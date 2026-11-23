@@ -70,7 +70,6 @@ class TkRenderer(Renderer):
         self._color_cache = []
         self._str_cache = {}
 
-        self.area.bind("<Button-1>", self._prevent_selection)
         self.area.bind("<B1-Motion>", self._prevent_selection)
 
         for keybinding, callback in self._key_down_bindings:

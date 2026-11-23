@@ -43,7 +43,12 @@ class Ellipse(StyledShape):
                 if x_right >= width:
                     x_right = width - 1
                 if x_left > x_right:
-                    intervals.append(None)
+                    snap = int(cx + 0.5)
+                    if snap < 0:
+                        snap = 0
+                    elif snap >= width:
+                        snap = width - 1
+                    intervals.append((snap, snap))
                 else:
                     intervals.append((x_left, x_right))
             self._ellipse_cache_key = key

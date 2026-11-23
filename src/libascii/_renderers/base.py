@@ -18,23 +18,69 @@ class BindingMixin:
     def on_key_down(
         self, keybinding: str, callback: Callable[[str], None]
     ) -> None:
-        self._key_down_bindings.append((keybinding, callback))
+        if (keybinding, callback) not in self._key_down_bindings:
+            self._key_down_bindings.append((keybinding, callback))
 
     def on_key_up(
         self, keybinding: str, callback: Callable[[str], None]
     ) -> None:
-        self._key_up_bindings.append((keybinding, callback))
+        if (keybinding, callback) not in self._key_up_bindings:
+            self._key_up_bindings.append((keybinding, callback))
 
     def on_mouse_down(
         self, callback: Callable[[tuple[int, int]], None]
     ) -> None:
-        self._mouse_down_bindings.append(callback)
+        if callback not in self._mouse_down_bindings:
+            self._mouse_down_bindings.append(callback)
 
     def on_mouse_up(self, callback: Callable[[tuple[int, int]], None]) -> None:
-        self._mouse_up_bindings.append(callback)
+        if callback not in self._mouse_up_bindings:
+            self._mouse_up_bindings.append(callback)
 
     def on_frame(self, callback: Callable[[], None]) -> None:
-        self._frame_bindings.append(callback)
+        if callback not in self._frame_bindings:
+            self._frame_bindings.append(callback)
+
+    def off_key_down(
+        self, keybinding: str, callback: Callable[[str], None]
+    ) -> None:
+        self._key_down_bindings = [
+            binding
+            for binding in self._key_down_bindings
+            if binding != (keybinding, callback)
+        ]
+
+    def off_key_up(
+        self, keybinding: str, callback: Callable[[str], None]
+    ) -> None:
+        self._key_up_bindings = [
+            binding
+            for binding in self._key_up_bindings
+            if binding != (keybinding, callback)
+        ]
+
+    def off_mouse_down(
+        self, callback: Callable[[tuple[int, int]], None]
+    ) -> None:
+        self._mouse_down_bindings = [
+            binding
+            for binding in self._mouse_down_bindings
+            if binding != callback
+        ]
+
+    def off_mouse_up(
+        self, callback: Callable[[tuple[int, int]], None]
+    ) -> None:
+        self._mouse_up_bindings = [
+            binding
+            for binding in self._mouse_up_bindings
+            if binding != callback
+        ]
+
+    def off_frame(self, callback: Callable[[], None]) -> None:
+        self._frame_bindings = [
+            binding for binding in self._frame_bindings if binding != callback
+        ]
 
 
 class Renderer(BindingMixin, ABC):

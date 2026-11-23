@@ -10,6 +10,7 @@ from .color import Color
 from .grid import Grid
 from .input import ActionMap
 from .renderers import Renderer
+from .scene import Scene, SceneManager
 from .shapes.shape import Shape
 
 
@@ -32,6 +33,8 @@ class Game:
         "action_map",
         "camera",
         "_refresh_lock",
+        "_action_bindings",
+        "scene_manager",
     )
 
     def __init__(
@@ -90,6 +93,11 @@ class Game:
             )
 
         self.action_map = ActionMap()
+        self.scene_manager = SceneManager()
+
+        self._action_bindings: dict[
+            str, list[tuple[str, Callable[[str], None], str]]
+        ] = {}
 
         self.camera = camera
 
@@ -163,18 +171,32 @@ class Game:
         self.renderer.on_frame(callback)
 
     def bind_action(self, name: str, keybinding: str) -> None:
+        self._remove_action_bindings(name)
         self.action_map.bind_action(name, keybinding)
 
-        def down(_: str) -> None:
-            self.action_map.key_down(name)
+        def down(key: str) -> None:
+            self.action_map.key_down(name, key)
 
-        def up(_: str) -> None:
-            self.action_map.key_up(name)
+        def up(key: str) -> None:
+            self.action_map.key_up(name, key)
 
         self.renderer.on_key_down(keybinding, down)
         self.renderer.on_key_up(keybinding, up)
 
+        self._action_bindings[name] = [
+            (keybinding, down, "down"),
+            (keybinding, up, "up"),
+        ]
+
+    def _remove_action_bindings(self, name: str) -> None:
+        for keybinding, callback, kind in self._action_bindings.pop(name, []):
+            if kind == "down":
+                self.renderer.off_key_down(keybinding, callback)
+            else:
+                self.renderer.off_key_up(keybinding, callback)
+
     def unbind_action(self, name: str) -> None:
+        self._remove_action_bindings(name)
         self.action_map.unbind_action(name)
 
     def action_is_pressed(self, name: str) -> bool:
@@ -245,6 +267,7 @@ class Game:
 
     def set_camera(self, camera: Camera | None) -> None:
         self.camera = camera
+        self.grid.mark_all_dirty()
 
     def run(self, callback: Callable[[], None]) -> None:
         self.start()
@@ -252,9 +275,23 @@ class Game:
             while self._running:
                 self.renderer.update()
                 callback()
+                self.scene_manager.update(1 / self._fps)
+                self.scene_manager.draw(self.grid)
                 time.sleep(1 / self._fps)
         finally:
             self.stop()
+
+    def push_scene(self, scene: Scene) -> None:
+        self.scene_manager.push(scene)
+
+    def pop_scene(self) -> Scene:
+        return self.scene_manager.pop()
+
+    def replace_scene(self, scene: Scene) -> None:
+        self.scene_manager.replace(scene)
+
+    def clear_scenes(self) -> None:
+        self.scene_manager.clear()
 
     def start(self) -> None:
         if self.started:
