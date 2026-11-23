@@ -34,17 +34,18 @@ class SceneManager:
         return self._stack[-1]
 
     def push(self, scene: Scene) -> None:
+        scene.enter()
         if self._stack:
             self._stack[-1].exit()
         self._stack.append(scene)
-        scene.enter()
 
     def pop(self) -> Scene:
         if not self._stack:
             msg = "scene stack is empty"
             raise IndexError(msg)
-        scene = self._stack.pop()
+        scene = self._stack[-1]
         scene.exit()
+        self._stack.pop()
         if self._stack:
             self._stack[-1].enter()
         return scene
@@ -53,14 +54,17 @@ class SceneManager:
         if not self._stack:
             msg = "scene stack is empty"
             raise IndexError(msg)
-        self._stack[-1].exit()
+        scene.enter()
+        old = self._stack[-1]
+        old.exit()
         self._stack.pop()
         self._stack.append(scene)
-        scene.enter()
 
     def clear(self) -> None:
         while self._stack:
-            self._stack.pop().exit()
+            scene = self._stack[-1]
+            scene.exit()
+            self._stack.pop()
 
     def update(self, dt: float) -> None:
         if self._stack:

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `Game.run()` now wrap the frame loop in `try/finally` calling `self.stop()` so that a callback exception no longer leaves the Tk mainloop running or a terminal in raw mode with the cursor hidden, etc. removed the manual `refresh()` call so `refresh` is called exactly once per frame by the renderer frame loop. added a `threading.Lock` (`_refresh_lock`) serializing concurrent `refresh()` calls (Terminal `InputDriver` thread vs main thread).
+- `HeadlessRenderer.tick()`: now calls `update()` so `refresh` (and other frame bindings!) dispatch exactly once per frame instead of twice. removed an incorrect `@override`.
+- `SceneManager.push()`/`pop()`/`replace()`/`clear()` now calls `enter()`/`exit()` before mutating the stack, so a failed `enter()`/`exit()` leaves the stack structurally correct instead of a half-entered or lost scene.
+- `ActionMap`: all mutation (`key_down`/`key_up`/`tick`/`bind_action`/`unbind_action`/`close`) and read (`is_pressed`/`was_pressed`/`is_held`/etc) paths are now guarded by a `threading.Lock`, eliminating wrong `is_held()` and unreliable `was_pressed()` under access from multiple threads.
+- `Grid.set_many_unchecked()`: validates every cell's bounds upfront and raises `IndexError` before writing, so negative coordinates no longer silently corrupt adjacent cells becuase Python negative indexing.
 ## [0.5.0] - 2026-11-20
 
 ### Added

@@ -40,7 +40,6 @@ class SnakeGame:
         self.particles = ParticleSystem()
         self._bind_actions()
         self._spawn_food()
-        self.game.on_frame(self._tick)
 
     def _bind_actions(self) -> None:
         self.game.bind_action("move_up", "Up")
@@ -138,10 +137,9 @@ class SnakeGame:
                 color=GAME_OVER_COLOR,
                 align_mode="left",
             )
-        self.game.refresh()
 
     def run(self) -> None:
-        self.game.start()
+        self.game.run(self._tick)
 
 
 if __name__ == "__main__":

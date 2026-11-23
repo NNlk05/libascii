@@ -1,5 +1,4 @@
 import random
-import time
 
 from libascii import Color, Game, draw_text
 from libascii.renderers import TerminalRenderer
@@ -299,12 +298,7 @@ class Tetris:
         self.game.refresh()
 
     def run(self) -> None:
-        self.game.start()
-        try:
-            while self.game._running:
-                time.sleep(0.05)
-        finally:
-            self.game.stop()
+        self.game.run(lambda: None)
 
 
 if __name__ == "__main__":

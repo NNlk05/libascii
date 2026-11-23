@@ -147,7 +147,6 @@ def main() -> None:
                 color=Color("white"),
                 align_mode="center",
             )
-        game.refresh()
 
     game.on_key_down("Up", lambda _: move_cursor(0, -1))
     game.on_key_down("Down", lambda _: move_cursor(0, 1))
@@ -168,10 +167,7 @@ def main() -> None:
             toggle_pause()
         render()
 
-    game.on_frame(on_frame_callback)
-
-    with game:
-        pass
+    game.run(on_frame_callback)
 
 
 if __name__ == "__main__":

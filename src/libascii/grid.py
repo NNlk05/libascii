@@ -249,6 +249,15 @@ class Grid:
     def set_many_unchecked(
         self, cells: list[tuple[int, int, str, Color | None]]
     ) -> None:
+        width = self.width
+        height = self.height
+        for x, y, _, _ in cells:
+            if x < 0 or y < 0 or x >= width or y >= height:
+                msg = (
+                    f"coordinates ({x}, {y}) out of bounds for grid "
+                    f"{width}x{height}"
+                )
+                raise IndexError(msg)
         content = self._content
         colors = self._colors
         dirty_flags = self._dirty_flags

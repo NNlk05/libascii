@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Callable
 from types import TracebackType
@@ -30,6 +31,7 @@ class Game:
         "renderer",
         "action_map",
         "camera",
+        "_refresh_lock",
     )
 
     def __init__(
@@ -70,6 +72,7 @@ class Game:
 
         self._running = False
         self.started = False
+        self._refresh_lock = threading.Lock()
 
         if renderer is not None:
             self.renderer = renderer
@@ -220,36 +223,38 @@ class Game:
         self.grid.set_text(x, y, string, color)
 
     def refresh(self) -> None:
-        grid = self.grid
-        if not grid.dirty:
-            return
-        regions = grid.dirty_regions()
-        if not regions:
+        with self._refresh_lock:
+            grid = self.grid
+            if not grid.dirty:
+                return
+            regions = grid.dirty_regions()
+            if not regions:
+                grid.mark_clean()
+                return
+            for region in regions:
+                self.renderer.render(grid, camera=self.camera, region=region)
             grid.mark_clean()
-            return
-        for region in regions:
-            self.renderer.render(grid, camera=self.camera, region=region)
-        grid.mark_clean()
-        if self._show_debug:
-            self._write_debug_line()
-            self.renderer.render(
-                grid,
-                camera=self.camera,
-                region=(0, grid.height - 1, grid.width, 1),
-            )
-            grid.mark_clean()
+            if self._show_debug:
+                self._write_debug_line()
+                self.renderer.render(
+                    grid,
+                    camera=self.camera,
+                    region=(0, grid.height - 1, grid.width, 1),
+                )
+                grid.mark_clean()
 
     def set_camera(self, camera: Camera | None) -> None:
         self.camera = camera
 
     def run(self, callback: Callable[[], None]) -> None:
         self.start()
-        while self._running:
-            callback()
-            self.refresh()
-            self.renderer.update()
-            time.sleep(1 / self._fps)
-        self.stop()
+        try:
+            while self._running:
+                self.renderer.update()
+                callback()
+                time.sleep(1 / self._fps)
+        finally:
+            self.stop()
 
     def start(self) -> None:
         if self.started:

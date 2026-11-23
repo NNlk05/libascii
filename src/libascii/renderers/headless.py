@@ -74,7 +74,4 @@ class HeadlessRenderer(Renderer):
             callback()
 
     def tick(self) -> None:
-        if not self._running:
-            return
-        for callback in self._frame_bindings:
-            callback()
+        self.update()

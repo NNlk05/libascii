@@ -103,8 +103,7 @@ class TkRenderer(Renderer):
             self.root.after(round(_FRAME_INTERVAL_MS / self._fps), _tick)
 
         assert self.root is not None
-        self.root.after(round(1000 / self._fps), _tick)
-        self.root.mainloop()
+        self.root.after(round(_FRAME_INTERVAL_MS / self._fps), _tick)
 
     @override
     def stop(self) -> None:
@@ -117,7 +116,7 @@ class TkRenderer(Renderer):
     @override
     def update(self) -> None:
         if self.root is not None:
-            self.root.update_idletasks()
+            self.root.update()
 
     @override
     def render(
