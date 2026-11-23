@@ -1,6 +1,6 @@
 [project]
 name = "libascii"
-version = "0.5.0"
+version = "0.5.1"
 description = "Pure-Python library for ASCII/Unicode game graphics"
 readme = "README.md"
 authors = [
