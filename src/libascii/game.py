@@ -200,22 +200,34 @@ class Game:
         self.action_map.unbind_action(name)
 
     def action_is_pressed(self, name: str) -> bool:
-        return self.action_map.is_pressed(name)
+        return self.action_map.is_pressed(
+            name, self.action_map.get_keybinding(name)
+        )
 
     def action_was_pressed(self, name: str) -> bool:
-        return self.action_map.was_pressed(name)
+        return self.action_map.was_pressed(
+            name, self.action_map.get_keybinding(name)
+        )
 
     def action_is_held(self, name: str) -> bool:
-        return self.action_map.is_held(name)
+        return self.action_map.is_held(
+            name, self.action_map.get_keybinding(name)
+        )
 
     def is_pressed(self, name: str) -> bool:
-        return self.action_map.is_pressed(name)
+        return self.action_map.is_pressed(
+            name, self.action_map.get_keybinding(name)
+        )
 
     def was_pressed(self, name: str) -> bool:
-        return self.action_map.was_pressed(name)
+        return self.action_map.was_pressed(
+            name, self.action_map.get_keybinding(name)
+        )
 
     def is_held(self, name: str) -> bool:
-        return self.action_map.is_held(name)
+        return self.action_map.is_held(
+            name, self.action_map.get_keybinding(name)
+        )
 
     def draw(self, shape: Shape, x: int = 0, y: int = 0) -> None:
         shape.draw(self.grid, x, y)
