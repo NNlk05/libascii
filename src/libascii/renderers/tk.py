@@ -44,6 +44,7 @@ class TkRenderer(Renderer):
         self._row_cache: list[str] = []
         self._color_cache: list[list[Color | None]] = []
         self._str_cache: dict[str | None, str] = {}
+        self._last_camera_offset: tuple[int, int] | None = None
 
     @override
     def start(self) -> None:
@@ -156,19 +157,54 @@ class TkRenderer(Renderer):
                 ox, oy = camera.offset
                 vw = camera.viewport_width
                 vh = camera.viewport_height
-                content = [
-                    row[ox : ox + vw] for row in grid.content[oy : oy + vh]
-                ]
-                colors = [
-                    row[ox : ox + vw] for row in grid.colors[oy : oy + vh]
-                ]
-                self.area.delete("1.0", tk.END)
-                rows = ["".join(row) for row in content]
-                self.area.insert("1.0", "\n".join(rows) + "\n")
+                right = min(ox + vw, grid.width)
+                bottom = min(oy + vh, grid.height)
+                vw_v = right - ox
+                vh_v = bottom - oy
+                if vw_v <= 0 or vh_v <= 0:
+                    self.area.delete("1.0", tk.END)
+                    self._row_cache = []
+                    self._color_cache = []
+                    self._last_camera_offset = camera.offset
+                    return
+                content = grid.content
+                colors = grid.colors
+                need_rebuild = (
+                    self._last_camera_offset != camera.offset
+                    or len(self._row_cache) < bottom
+                )
+                if need_rebuild:
+                    rows = [
+                        "".join(content[y][ox:right])
+                        for y in range(oy, bottom)
+                    ]
+                    self.area.delete("1.0", tk.END)
+                    self.area.insert("1.0", "\n".join(rows) + "\n")
+                    wiped_rows: set[int] = set(range(vh_v))
+                    for y in range(oy, bottom):
+                        while len(self._row_cache) <= y:
+                            self._row_cache.append("")
+                        self._row_cache[y] = "".join(content[y])
+                else:
+                    wiped_rows = set()
+                    for vy, y in enumerate(range(oy, bottom)):
+                        if self._row_cache[y] == "".join(content[y]):
+                            continue
+                        line = f"{vy + 1}."
+                        row_str = "".join(content[y][ox:right])
+                        self.area.delete(f"{line}0", f"{line}{vw_v}")
+                        self.area.insert(f"{line}0", row_str)
+                        self._row_cache[y] = "".join(content[y])
+                        wiped_rows.add(vy)
+                self._last_camera_offset = camera.offset
                 self._apply_colors(
-                    colors,
-                    wiped_rows=set(range(len(colors))),
-                    dirty_color_rows=grid.dirty_color_rows,
+                    [row[ox:right] for row in colors[oy:bottom]],
+                    wiped_rows=wiped_rows,
+                    dirty_color_rows={
+                        y - oy
+                        for y in grid.dirty_color_rows
+                        if oy <= y < bottom
+                    },
                 )
         else:
             self._render_region(grid, region)
@@ -194,16 +230,13 @@ class TkRenderer(Renderer):
         if end_row is None:
             end_row = len(colors)
         shadow = self._color_cache
-        use_shadow = (
-            len(colors) == self.height
-            and bool(colors)
-            and len(colors[0]) == self.width
-        )
+        rows = len(colors)
+        cols = len(colors[0]) if rows else 0
+        use_shadow = rows > 0 and cols > 0
         if use_shadow and (
-            len(shadow) != self.height
-            or any(len(row) != self.width for row in shadow)
+            len(shadow) != rows or any(len(row) != cols for row in shadow)
         ):
-            shadow = [[None] * self.width for _ in range(self.height)]
+            shadow = [[None] * cols for _ in range(rows)]
             self._color_cache = shadow
         tag_ranges: dict[str, list[tuple[str, str]]] = {}
         for y in range(start_row, end_row):

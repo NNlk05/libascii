@@ -30,6 +30,12 @@ def wrap(text: str, width: int) -> list[str]:
 
 
 def align(line: str, width: int, mode: str = "left") -> str:
+    if width <= 0:
+        msg = f"width must be positive, got {width!r}"
+        raise ValueError(msg)
+    if mode not in ("left", "right", "center"):
+        msg = f"unknown align mode: {mode!r}"
+        raise ValueError(msg)
     if len(line) >= width:
         return line[:width]
     padding = width - len(line)
@@ -37,12 +43,9 @@ def align(line: str, width: int, mode: str = "left") -> str:
         return line + " " * padding
     if mode == "right":
         return " " * padding + line
-    if mode == "center":
-        left = padding // 2
-        right = padding - left
-        return " " * left + line + " " * right
-    msg = f"unknown align mode: {mode!r}"
-    raise ValueError(msg)
+    left = padding // 2
+    right = padding - left
+    return " " * left + line + " " * right
 
 
 def draw_text(
@@ -55,7 +58,7 @@ def draw_text(
 ) -> None:
     if isinstance(lines, str):
         lines = lines.split("\n")
-    if not (0 <= y < grid.height):
+    if not (0 <= y < grid.height) or x >= grid.width:
         msg = (
             f"coordinates ({x}, {y}) out of bounds for grid "
             f"{grid.width}x{grid.height}"

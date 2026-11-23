@@ -39,6 +39,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TerminalRenderer._InputDriver`: buffers partial escape sequences across reads so split key sequences assemble correctly.
 - Shapes (`rectangle`, `ellipse`, `triangle`, `line`): removed unreachable `width==0`/`height==0` guards, dead locals, and redundant assignments; standardized inline bounds checks on `grid.in_bounds()`. Drawing behavior unchanged.
 - `Sound`: encapsulated `ps` -> private `_ps`; added `__all__ = ["Sound"]`; `Sound.__init__` validates `path` (str|Path, non-empty); `play(block: bool = False)` forwards `block` and wraps playsound errors with path context; `stop()` swallows `OSError`/`ProcessLookupError` from already-exited playback; `wait_done(play_object, timeout=None)` supports a timeout raising `TimeoutError`; added `close()` / `__enter__` / `__exit__`. `tests/test_sound.py` updated (`sound_module.ps` → `sound_module._ps`).
+- `Grid.mark_cells_clean()` now removes old `_dirty_cells_list` items and `_dirty_color_rows` rows without dirty cells.
+- `Grid.set_text()` now guards against writing an inverted dirty BB for empty and/or out-of-range text.
+- `Grid.set()` skips dirty-marking when char/color are unchanged; validates single-char `char`; removed dead `_expand_dirty` min/max fields.
+- `TkRenderer` camera branch uses dirty-region diffing + rebuild-on-offset-change, keeping `_row_cache`/`_color_cache` in sync; `_apply_colors` shadow cache sizes to passed colors' dimensions for sliced grids.
+- `TerminalRenderer`: plain mode emits cursor-home `\x1b[H`; `_screen_cleared` reset on `start()`; atexit registered once; non-tty input thread sleeps instead of busy-spinning; `_COLOR_RGB_CACHE` defined above `_color_to_rgb`; 3-digit hex expanded / invalid hex raises `ValueError`; `_row_runs()` clamps `x_start`/`x_end`.
+- `_utils/keymapping.py`: deduplicates modifier combinations after each expansion; `[modifier]` skips already-present modifiers; plain-key branch raises `ValueError` when a key follows an already-set key; `MAX_COMBINATIONS` enforced after each pattern/token expansion.
+- `text.align()` validates `width > 0` and `mode` at the top; `draw_text()` raises `IndexError` for out-of-bounds `x` as well as `y`.
+- `chars.get_char()` widens `name` hint to `str | int`; distinguishes missing category vs missing name; `CharLib` exposed read-only.
+- `Color` normalizes hex to lowercase; rejects `bool` RGB components; rejects non-conforming types in `__init__`.
+- `Particle.update()` / `ParticleSystem.update()` clamp negative `dt`; death branch applies final fade char; `fade_chars` copied on assignment.
+- `Sprite.update()` caps iterations via arithmetic frame advance; `fps` is a property recomputing `_frame_duration`; XPM `to_xpm_string()` computes `cpp` from max cell length and validates single-char cells; `_parse_xpm_frame()` enforces exact row length and raises on unknown cell char; `_build_xpm_color_map()` detects char/color conflicts.
+- `Tilemap.draw()` pre-filter documented via `in_bounds_cells` naming; `set_many_unchecked` raises `IndexError` out of bounds (P0).
+- `collision.rect_overlap()`/`point_in_rect()`/`grid_cell_overlap()` validate 4-tuple length and non-negative width/height; object branch raises `AttributeError` on missing `x`/`y`/`width`/`height` instead of degrading to a zero-size rect.
+- `collision`: `rect_overlap()`, `point_in_rect()`, and `grid_cell_overlap()` reject wrong-length rects and negative width/height; `grid_cell_overlap()` requires `x`/`y`/`width`/`height` on objects instead of defaulting missing attributes to 0.
+- `Grid.mark_cells_clean()`: removes cleaned `(x, y)` entries from `_dirty_cells_list` and prunes `_dirty_color_rows` rows with no remaining dirty cells, preventing unbounded growth of stale entries.
+- `Grid.set_text()`: guards the dirty-bbox expansion with `x_start <= x_max` so empty/out-of-range text never writes inverted bounds.
+- `Grid.set()`: skips dirty-marking entirely when char and color are unchanged, avoiding duplicate `_dirty_cells_list` entries and redundant redraws.
+- `Grid`: removed the never-read `_dirty_min_x`/`_dirty_min_y`/`_dirty_max_x`/`_dirty_max_y` slots and all writes to them; `_expand_dirty()` now only sets `_dirty = True`.
+- `Grid.set()`: validates `len(char) == 1` and raises `ValueError` otherwise, enforcing the single-glyph contract so rows stay column-aligned.
 ## [0.5.0] - 2026-11-20
 
 ### Added

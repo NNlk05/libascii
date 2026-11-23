@@ -41,6 +41,8 @@ _NAMED_COLORS: dict[str, tuple[int, int, int]] = {
     "bright_white": (255, 255, 255),
 }
 
+_COLOR_RGB_CACHE: dict[str, tuple[int, int, int] | None] = {}
+
 
 def _color_to_rgb(value: str | None) -> tuple[int, int, int] | None:
     if value is None or value == "":
@@ -49,17 +51,20 @@ def _color_to_rgb(value: str | None) -> tuple[int, int, int] | None:
         return _COLOR_RGB_CACHE[value]
     if value.startswith("#"):
         hex_str = value[1:]
-        if len(hex_str) == 6:
-            try:
-                result = (
-                    int(hex_str[0:2], 16),
-                    int(hex_str[2:4], 16),
-                    int(hex_str[4:6], 16),
-                )
-            except ValueError:
-                result = None
-        else:
-            result = None
+        if len(hex_str) == 3:
+            hex_str = "".join(c + c for c in hex_str)
+        if len(hex_str) != 6:
+            msg = f"invalid hex color: {value}"
+            raise ValueError(msg)
+        try:
+            result = (
+                int(hex_str[0:2], 16),
+                int(hex_str[2:4], 16),
+                int(hex_str[4:6], 16),
+            )
+        except ValueError:
+            msg = f"invalid hex color: {value}"
+            raise ValueError(msg)
     else:
         result = _NAMED_COLORS.get(value.lower())
     _COLOR_RGB_CACHE[value] = result
@@ -103,7 +108,7 @@ def _build_xterm256_palette() -> list[tuple[int, int, int]]:
 
 _XTERM256_PALETTE = _build_xterm256_palette()
 
-_COLOR_RGB_CACHE: dict[str, tuple[int, int, int] | None] = {}
+
 _XTERM256_CACHE: dict[tuple[int, int, int], int] = {}
 _ESCAPE_CACHE: dict[tuple[Color | str, str], str] = {}
 _MAX_READ_BYTES = 17
@@ -283,6 +288,7 @@ class _InputDriver:
         self._stop_event = threading.Event()
         self._old_settings: list[int] | None = None
         self._mouse_enabled = False
+        self._atexit_registered = False
 
     def start(self) -> None:
         if self._thread is not None:
@@ -317,7 +323,9 @@ class _InputDriver:
         except termios.error:
             self._old_settings = None
             return
-        atexit.register(self._restore_unix)
+        if not self._atexit_registered:
+            atexit.register(self._restore_unix)
+            self._atexit_registered = True
         try:
             tty.setraw(fd)
         except termios.error:
@@ -440,6 +448,7 @@ class _InputDriver:
         import select
 
         if not sys.stdin.isatty():
+            time.sleep(timeout)
             return None
         fd = sys.stdin.fileno()
         try:
@@ -559,6 +568,7 @@ class TerminalRenderer(Renderer):
 
     @override
     def start(self) -> None:
+        self._screen_cleared = False
         self._init_colorama()
         self._running = True
         self._input_driver = _InputDriver(
@@ -632,7 +642,9 @@ class TerminalRenderer(Renderer):
             for y in range(height)
         ]
         result = "\r\n".join(lines) + "\r\n"
-        if mode != "plain":
+        if mode == "plain":
+            result = "\x1b[H" + result
+        else:
             if not self._screen_cleared:
                 result = "\x1b[2J\x1b[H" + result
                 self._screen_cleared = True
@@ -698,6 +710,13 @@ class TerminalRenderer(Renderer):
         x_end: int,
         mode: str,
     ) -> str:
+        max_x = len(row_colors)
+        x_start = max(0, min(x_start, max_x))
+        x_end = max(0, min(x_end, max_x))
+        if x_end < x_start:
+            x_end = x_start
+        if x_start >= x_end:
+            return ""
         if mode == "plain":
             return "".join(row_chars[x_start:x_end])
         parts: list[str] = []

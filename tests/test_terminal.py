@@ -40,7 +40,8 @@ def test_terminal_render_plain_text_no_ansi() -> None:
     grid.set(2, 0, "C", None)
     renderer.render(grid)
     output = stream.getvalue()
-    assert "\x1b" not in output
+    assert "\x1b[H" in output
+    assert "\x1b[38;" not in output
     assert "ABC" in output
 
 

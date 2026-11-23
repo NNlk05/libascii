@@ -22,7 +22,7 @@ class Tilemap:
         return dict(self._tileset)
 
     def draw(self, grid: Grid, ox: int, oy: int) -> None:
-        cells: list[tuple[int, int, str, Color | None]] = []
+        in_bounds_cells: list[tuple[int, int, str, Color | None]] = []
         tileset = self._tileset
         for ty, row in enumerate(self._tile_grid):
             grid_y = oy + ty
@@ -39,5 +39,5 @@ class Tilemap:
                 if entry is None:
                     continue
                 char, color = entry
-                cells.append((grid_x, grid_y, char, color))
-        grid.set_many_unchecked(cells)
+                in_bounds_cells.append((grid_x, grid_y, char, color))
+        grid.set_many_unchecked(in_bounds_cells)

@@ -37,16 +37,18 @@ class Particle:
         self.max_life = life
         self.char = char
         self.color = color
-        self.fade_chars = fade_chars or []
+        self.fade_chars = list(fade_chars) if fade_chars is not None else []
         self.dead = False
 
     def update(self, dt: float) -> None:
         if self.dead:
             return
+        dt = max(dt, 0.0)
         self.life -= dt
         self.x += self.vx * dt
         self.y += self.vy * dt
         if self.life <= 0:
+            self._update_char()
             self.dead = True
             self.life = 0
         else:
@@ -54,6 +56,8 @@ class Particle:
 
     def _update_char(self) -> None:
         if not self.fade_chars:
+            return
+        if self.max_life == 0:
             return
         fraction = 1.0 - self.life / self.max_life
         index = int(fraction * (len(self.fade_chars) - 1))
@@ -90,6 +94,7 @@ class ParticleSystem:
         )
 
     def update(self, dt: float) -> None:
+        dt = max(dt, 0.0)
         write = 0
         for particle in self.particles:
             particle.update(dt)

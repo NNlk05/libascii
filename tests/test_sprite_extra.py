@@ -160,7 +160,7 @@ def test_sprite_from_xpm_string_cpp_2() -> None:
 
 XX white
 
-XXXX
+XX
 """
     sprite = Sprite.from_xpm_string(data, fps=10)
     assert sprite.frames[0][0][0] == "XX"

@@ -28,7 +28,7 @@ class Sprite:
     __slots__ = (
         "frames",
         "_colors",
-        "fps",
+        "_fps",
         "loop",
         "flip_h",
         "flip_v",
@@ -78,9 +78,6 @@ class Sprite:
                     if len(color_row) != len(char_row):
                         msg = "colors must match frames"
                         raise ValueError(msg)
-        if fps <= 0:
-            msg = "fps must be positive"
-            raise ValueError(msg)
 
         self.frames = frames
         self._colors = colors
@@ -88,7 +85,6 @@ class Sprite:
         self.loop = loop
         self.flip_h = False
         self.flip_v = False
-        self._frame_duration = 1.0 / fps
         self._frame_index = 0
         self._elapsed = 0.0
         self._playing = False
@@ -109,6 +105,18 @@ class Sprite:
     @property
     def finished(self) -> bool:
         return self._finished
+
+    @property
+    def fps(self) -> int:
+        return self._fps
+
+    @fps.setter
+    def fps(self, value: int) -> None:
+        if value <= 0:
+            msg = "fps must be positive"
+            raise ValueError(msg)
+        self._fps = value
+        self._frame_duration = 1.0 / value
 
     def play(self) -> None:
         if self._finished:
@@ -132,17 +140,19 @@ class Sprite:
         if dt < 0:
             dt = 0.0
         self._elapsed += dt
-        while self._elapsed >= self._frame_duration:
-            self._elapsed -= self._frame_duration
-            self._frame_index += 1
-            if self._frame_index >= len(self.frames):
-                if self.loop:
-                    self._frame_index = 0
-                else:
-                    self._frame_index = len(self.frames) - 1
-                    self._playing = False
-                    self._finished = True
-                    break
+        frame_duration = self._frame_duration
+        frames_advanced = int(self._elapsed / frame_duration)
+        if frames_advanced <= 0:
+            return
+        self._elapsed -= frames_advanced * frame_duration
+        self._frame_index += frames_advanced
+        if self._frame_index >= len(self.frames):
+            if self.loop:
+                self._frame_index %= len(self.frames)
+            else:
+                self._frame_index = len(self.frames) - 1
+                self._playing = False
+                self._finished = True
 
     def _current_chars(self) -> list[list[str]]:
         if (
@@ -219,6 +229,13 @@ class Sprite:
         width = len(self.frames[0][0]) if height > 0 else 0
         num_frames = len(self.frames)
         cpp = 1
+        for frame in self.frames:
+            for row in frame:
+                for cell in row:
+                    if cell == "":
+                        msg = "xpm cells must be non-empty strings"
+                        raise ValueError(msg)
+                    cpp = max(cpp, len(cell))
         color_map = _build_xpm_color_map(self)
         num_colors = len(color_map)
 
@@ -292,15 +309,16 @@ def _parse_xpm_frame(
 ) -> tuple[list[list[str]], list[list[Color | None]], int]:
     grid_chars: list[list[str]] = []
     grid_colors: list[list[Color | None]] = []
+    expected = width * cpp
     for _ in range(height):
         if index >= len(lines):
             msg = "xpm frame rows are truncated"
             raise ValueError(msg)
         line = lines[index]
         index += 1
-        if len(line) < width * cpp:
+        if len(line) != expected:
             msg = (
-                f"xpm row is too short: expected {width * cpp} "
+                f"xpm row length mismatch: expected {expected} "
                 f"chars, got {len(line)}"
             )
             raise ValueError(msg)
@@ -309,8 +327,11 @@ def _parse_xpm_frame(
         for cell_x in range(width):
             start = cell_x * cpp
             cell_str = line[start : start + cpp]
+            if cell_str not in color_map:
+                msg = f"xpm cell is not in the color map: {cell_str!r}"
+                raise ValueError(msg)
             row_chars.append(cell_str)
-            row_colors.append(color_map.get(cell_str, None))
+            row_colors.append(color_map[cell_str])
         grid_chars.append(row_chars)
         grid_colors.append(row_colors)
     return grid_chars, grid_colors, index
@@ -323,11 +344,14 @@ def _build_xpm_color_map(sprite: Sprite) -> dict[str, Color | None]:
             sprite._colors[frame_idx] if sprite._colors is not None else None
         )
         for row_idx, row in enumerate(frame):
-            for col_idx, char in enumerate(row):
+            for col_idx, cell in enumerate(row):
                 color: Color | None = None
                 if frame_colors is not None:
                     color = frame_colors[row_idx][col_idx]
-                color_map[char] = color
+                if cell in color_map and color_map[cell] != color:
+                    msg = "xpm cell has conflicting colors across frames"
+                    raise ValueError(msg)
+                color_map[cell] = color
     return color_map
 
 

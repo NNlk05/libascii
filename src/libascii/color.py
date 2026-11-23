@@ -7,16 +7,27 @@ class Color:
     ) -> None:
         if isinstance(value, tuple):
             if len(value) != 3 or not all(
-                isinstance(c, int) and 0 <= c <= 255 for c in value
+                isinstance(c, int)
+                and not isinstance(c, bool)
+                and 0 <= c <= 255
+                for c in value
             ):
                 msg = "RGB tuple must contain 3 integers in range 0-255"
                 raise ValueError(msg)
             r, g, b = value
             self.value = f"#{r:02x}{g:02x}{b:02x}"
-        elif value is None or value == "":
+        elif value is None:
             self.value = None
+        elif isinstance(value, str):
+            if value == "":
+                self.value = None
+            elif value.startswith("#"):
+                self.value = value.lower()
+            else:
+                self.value = value
         else:
-            self.value = value
+            msg = "color value must be a str, an RGB tuple, or None"
+            raise ValueError(msg)
 
     @classmethod
     def from_hex(cls, hex_str: str) -> "Color":

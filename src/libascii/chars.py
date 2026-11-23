@@ -1,4 +1,38 @@
-CharLib: dict[str, dict[str | int, str]] = {
+from types import MappingProxyType
+from typing import Never, override
+
+
+class _ReadOnlyDict(dict[str, MappingProxyType[str | int, str]]):
+    @override
+    def __setitem__(self, key: object, value: object) -> Never:
+        raise TypeError("CharLib is read-only")
+
+    @override
+    def __delitem__(self, key: object) -> Never:
+        raise TypeError("CharLib is read-only")
+
+    @override
+    def clear(self) -> Never:
+        raise TypeError("CharLib is read-only")
+
+    @override
+    def pop(self, key: object, default: object = None, /) -> Never:
+        raise TypeError("CharLib is read-only")
+
+    @override
+    def popitem(self) -> Never:
+        raise TypeError("CharLib is read-only")
+
+    @override
+    def setdefault(self, key: object, default: object = None, /) -> Never:
+        raise TypeError("CharLib is read-only")
+
+    @override
+    def update(self, __other: object = None, /, **kwargs: object) -> Never:
+        raise TypeError("CharLib is read-only")
+
+
+_CHARLIB: dict[str, dict[str | int, str]] = {
     "MAIN": {
         "BLANK": " ",
         "LIGHT_SHADE": "░",
@@ -121,10 +155,19 @@ CharLib: dict[str, dict[str | int, str]] = {
     "BRAILLE": {i: chr(0x2800 + i) for i in range(1, 256)},
 }
 
+CharLib: dict[str, MappingProxyType[str | int, str]] = _ReadOnlyDict(
+    {key: MappingProxyType(value) for key, value in _CHARLIB.items()}
+)
 
-def get_char(category: str, name: str) -> str:
+
+def get_char(category: str, name: str | int) -> str:
     try:
-        return CharLib[category][name]
+        category_chars = CharLib[category]
+    except KeyError:
+        msg = f"category {category!r} not found"
+        raise ValueError(msg) from None
+    try:
+        return category_chars[name]
     except KeyError:
         msg = f"character {name!r} not found in category {category!r}"
         raise ValueError(msg) from None
