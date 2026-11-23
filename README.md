@@ -12,10 +12,10 @@ Install via `pip`:
 $ pip install libascii
 ```
 
-Build from source (make sure you have `uv` installed):
+Build from source (if you want to latest [potently broken] dev build):
 ```bash
 $ git clone https://github.com/NNlk05/libascii && cd libascii
-$ pip install -e .
+$ pip install .
 ```
 
 ## Usage
