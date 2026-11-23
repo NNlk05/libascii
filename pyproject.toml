@@ -43,7 +43,7 @@ dev = [
     "pytest-cov>=7.1.0",
     "ruff>=0.17.6",
     "uncomment>=3.12.1",
-    "ty>=0.0.107",
+    "ty>=0.0.108",
 ]
 
 [project.optional-dependencies]
