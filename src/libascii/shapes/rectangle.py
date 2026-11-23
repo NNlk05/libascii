@@ -10,8 +10,6 @@ class Rectangle(StyledShape):
     def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
         width = self.width
         height = self.height
-        if width == 0 or height == 0:
-            return
 
         fill = self.fill
         fill_color = self.fill_color

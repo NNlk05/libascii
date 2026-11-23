@@ -8,8 +8,6 @@ from .shape import StyledShape
 class Triangle(StyledShape):
     @override
     def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
-        if self.height == 0 or self.width == 0:
-            return
         ox, oy = x, y
 
         top = (self.width // 2, 0)
@@ -35,10 +33,6 @@ class Triangle(StyledShape):
         fill = self.fill
         fill_color = self.fill_color
         border_color = self.border_color
-        border_bottom = self.border_bottom
-        border_left = self.border_left
-        border_right = self.border_right
-        border = self.border
 
         cells: list[tuple[int, int, str, Color | None]] = []
 
@@ -55,7 +49,7 @@ class Triangle(StyledShape):
             for x in range(left, right + 1):
                 gx = x + ox
                 gy = y + oy
-                if not (0 <= gx < grid.width and 0 <= gy < grid.height):
+                if not grid.in_bounds(gx, gy):
                     continue
                 on_border = (
                     gx == left + ox

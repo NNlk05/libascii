@@ -12,22 +12,22 @@ def test_sound_play_calls_playsound() -> None:
 
     import libascii.sound as sound_module
 
-    original_ps = sound_module.ps
-    sound_module.ps = mock_ps
+    original_ps = sound_module._ps
+    sound_module._ps = mock_ps
     try:
         s = Sound("test.wav")
         result = s.play()
         mock_ps.playsound.assert_called_once_with("test.wav", block=False)
         assert result is mock_play_object
     finally:
-        sound_module.ps = original_ps
+        sound_module._ps = original_ps
 
 
 def test_sound_stop_with_none_raises() -> None:
     import libascii.sound as sound_module
 
-    original_ps = sound_module.ps
-    sound_module.ps = MagicMock()
+    original_ps = sound_module._ps
+    sound_module._ps = MagicMock()
     try:
         s = Sound("test.wav")
         try:
@@ -37,14 +37,14 @@ def test_sound_stop_with_none_raises() -> None:
         else:
             raise AssertionError("expected ValueError for None play_object")
     finally:
-        sound_module.ps = original_ps
+        sound_module._ps = original_ps
 
 
 def test_sound_is_playing_with_none_raises() -> None:
     import libascii.sound as sound_module
 
-    original_ps = sound_module.ps
-    sound_module.ps = MagicMock()
+    original_ps = sound_module._ps
+    sound_module._ps = MagicMock()
     try:
         s = Sound("test.wav")
         try:
@@ -54,14 +54,14 @@ def test_sound_is_playing_with_none_raises() -> None:
         else:
             raise AssertionError("expected ValueError for None play_object")
     finally:
-        sound_module.ps = original_ps
+        sound_module._ps = original_ps
 
 
 def test_sound_wait_done_with_none_raises() -> None:
     import libascii.sound as sound_module
 
-    original_ps = sound_module.ps
-    sound_module.ps = MagicMock()
+    original_ps = sound_module._ps
+    sound_module._ps = MagicMock()
     try:
         s = Sound("test.wav")
         try:
@@ -71,16 +71,16 @@ def test_sound_wait_done_with_none_raises() -> None:
         else:
             raise AssertionError("expected ValueError for None play_object")
     finally:
-        sound_module.ps = original_ps
+        sound_module._ps = original_ps
 
 
 def test_sound_init_stores_path() -> None:
     import libascii.sound as sound_module
 
-    original_ps = sound_module.ps
-    sound_module.ps = None
+    original_ps = sound_module._ps
+    sound_module._ps = None
     try:
         s = Sound("test.wav")
         assert s.path == "test.wav"
     finally:
-        sound_module.ps = original_ps
+        sound_module._ps = original_ps

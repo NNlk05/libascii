@@ -79,7 +79,7 @@ class Grid:
 
     @property
     def dirty_color_rows(self) -> set[int]:
-        return self._dirty_color_rows
+        return set(self._dirty_color_rows)
 
     def mark_clean(self) -> None:
         dirty_flags = self._dirty_flags

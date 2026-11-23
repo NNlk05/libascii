@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Sound`: tracks active play_objects and provides `stop_all()`/`stop_active()` (errors from already-exited playback are swallowed), so in-flight sounds can be stopped and play_objects no longer leak.
 - `chars`: removed the 5 duplicate/misnamed `ROUNDED_T_UP/DOWN/LEFT/RIGHT`/`ROUNDED_CROSS` entries (they duplicated sharp PIPE_EXTENDED glyphs and LEFT/RIGHT were swapped); genuine `ROUNDED_*_TURN` entries kept.
 - `Game`: owns a `scene_manager` (`SceneManager`) exposed as a public attribute with `push_scene`/`pop_scene`/`replace_scene`/`clear_scenes` delegation, driven after the user callback in `run()`.
+- `Grid.dirty_color_rows()` now returns a copy of the internal dirty row set instead of the reference.
+- `TkRenderer`: renamed misnamed `_FRAME_INTERVAL_MS` to `MS_PER_SECOND`.
+- `HeadlessRenderer.stop()`: clears `last_grid`/`last_region` so old grid/region references are released.
+- `Camera.visible_rect()`: clamps width/height so right/bottom never exceed world bounds.
+- `ActionMap`: added public `reopen()` to reset a closed instance for reuse.
+- `TerminalRenderer._InputDriver`: buffers partial escape sequences across reads so split key sequences assemble correctly.
+- Shapes (`rectangle`, `ellipse`, `triangle`, `line`): removed unreachable `width==0`/`height==0` guards, dead locals, and redundant assignments; standardized inline bounds checks on `grid.in_bounds()`. Drawing behavior unchanged.
+- `Sound`: encapsulated `ps` -> private `_ps`; added `__all__ = ["Sound"]`; `Sound.__init__` validates `path` (str|Path, non-empty); `play(block: bool = False)` forwards `block` and wraps playsound errors with path context; `stop()` swallows `OSError`/`ProcessLookupError` from already-exited playback; `wait_done(play_object, timeout=None)` supports a timeout raising `TimeoutError`; added `close()` / `__enter__` / `__exit__`. `tests/test_sound.py` updated (`sound_module.ps` → `sound_module._ps`).
 ## [0.5.0] - 2026-11-20
 
 ### Added

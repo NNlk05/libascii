@@ -392,6 +392,7 @@ class _InputDriver:
     def _run(self) -> None:
         frame_interval = 1.0 / self._fps
         last_frame = time.monotonic()
+        pending: bytearray = bytearray()
         while not self._stop_event.is_set():
             now = time.monotonic()
             if now - last_frame >= frame_interval:
@@ -406,19 +407,29 @@ class _InputDriver:
             data = self._read_bytes(timeout)
             if data is None or len(data) == 0:
                 continue
-            mouse = _parse_mouse_sgr(data)
+            combined = bytes(pending) + data
+            pending = bytearray()
+            mouse = _parse_mouse_sgr(combined)
             if mouse is not None:
                 button, x, y, pressed = mouse
                 self._dispatch_mouse(button, x, y, pressed)
                 continue
-            mouse = _parse_mouse_x10(data)
+            mouse = _parse_mouse_x10(combined)
             if mouse is not None:
                 button, x, y = mouse
                 self._dispatch_mouse(button, x, y, True)
                 continue
-            key_name = _key_name_for_bytes(data)
+            key_name = _key_name_for_bytes(combined)
             if key_name is not None:
                 self._dispatch_key(key_name)
+                continue
+            if combined == b"\x1b" or (
+                combined.startswith(b"\x1b[")
+                and not (0x40 <= combined[-1] <= 0x7E)
+            ):
+                pending = bytearray(combined)
+                continue
+            pending = bytearray()
 
     def _read_bytes(self, timeout: float) -> bytes | None:
         if os.name == "nt":

@@ -39,6 +39,8 @@ class HeadlessRenderer(Renderer):
     @override
     def stop(self) -> None:
         self._running = False
+        self.last_grid = None
+        self.last_region = None
 
     @override
     def render(

@@ -25,8 +25,8 @@ class Camera:
         return (
             self._offset_x,
             self._offset_y,
-            self.viewport_width,
-            self.viewport_height,
+            min(self.viewport_width, self.world_width - self._offset_x),
+            min(self.viewport_height, self.world_height - self._offset_y),
         )
 
     def set_offset(self, ox: int, oy: int) -> None:

@@ -15,8 +15,6 @@ class Ellipse(StyledShape):
     def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
         width = self.width
         height = self.height
-        if width == 0 or height == 0:
-            return
         ox, oy = x, y
 
         key = (width, height)
@@ -64,7 +62,6 @@ class Ellipse(StyledShape):
         border_right = self.border_right
         border = self.border
         last_y = height - 1
-        last_x = width - 1
 
         cells: list[tuple[int, int, str, Color | None]] = []
 
@@ -78,8 +75,6 @@ class Ellipse(StyledShape):
             nxt = intervals[y + 1] if y < last_y else None
 
             for x in range(x_left, x_right + 1):
-                on_border = False
-
                 if x == x_left or x == x_right:
                     on_border = True
                 top_outside = y == 0 or (
@@ -112,7 +107,7 @@ class Ellipse(StyledShape):
                     c = fill_color
                 gx = x + ox
                 gy = y + oy
-                if not (0 <= gx < grid.width and 0 <= gy < grid.height):
+                if not grid.in_bounds(gx, gy):
                     continue
                 cells.append((gx, gy, ch, c))
 

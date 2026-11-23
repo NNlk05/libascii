@@ -24,8 +24,6 @@ class Line(Shape):
 
     @override
     def draw(self, grid: Grid, x: int = 0, y: int = 0) -> None:
-        width = grid.width
-        height = grid.height
         char = self.char
         color = self.color
 
@@ -42,7 +40,7 @@ class Line(Shape):
         while True:
             gx = x + x0
             gy = y + y0
-            if 0 <= gx < width and 0 <= gy < height:
+            if grid.in_bounds(gx, gy):
                 cells.append((gx, gy, char, color))
             if x0 == x1 and y0 == y1:
                 break

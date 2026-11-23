@@ -81,6 +81,15 @@ class ActionMap:
             self._pressed_frame.clear()
             self._just_pressed.clear()
 
+    def reopen(self) -> None:
+        with self._lock:
+            self._closed = False
+            self._bindings.clear()
+            self._pressed.clear()
+            self._pressed_frame.clear()
+            self._just_pressed.clear()
+            self._frame = 0
+
     def is_pressed(self, name: str, key: str | None = None) -> bool:
         with self._lock:
             return self._pressed.get(self._state_key(name, key), False)
