@@ -15,8 +15,7 @@ $ pip install libascii
 Build from source (make sure you have `uv` installed):
 ```bash
 $ git clone https://github.com/NNlk05/libascii && cd libascii
-$ uv build
-$ pip install -e . #TODO: I think this is the right commands but I'm not sure...
+$ pip install -e .
 ```
 
 ## Usage
