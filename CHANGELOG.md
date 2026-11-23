@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-22
 ### Fixed
 
 - `Game.run()` now wrap the frame loop in `try/finally` calling `self.stop()` so that a callback exception no longer leaves the Tk mainloop running or a terminal in raw mode with the cursor hidden, etc. removed the manual `refresh()` call so `refresh` is called exactly once per frame by the renderer frame loop. added a `threading.Lock` (`_refresh_lock`) serializing concurrent `refresh()` calls (Terminal `InputDriver` thread vs main thread).
@@ -58,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Grid.set()`: skips dirty-marking entirely when char and color are unchanged, avoiding duplicate `_dirty_cells_list` entries and redundant redraws.
 - `Grid`: removed the never-read `_dirty_min_x`/`_dirty_min_y`/`_dirty_max_x`/`_dirty_max_y` slots and all writes to them; `_expand_dirty()` now only sets `_dirty = True`.
 - `Grid.set()`: validates `len(char) == 1` and raises `ValueError` otherwise, enforcing the single-glyph contract so rows stay column-aligned.
+
 ## [0.5.0] - 2026-11-20
 
 ### Added
